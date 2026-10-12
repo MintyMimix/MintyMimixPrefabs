@@ -34,7 +34,7 @@ public class PlayerTagListener : UdonSharpBehaviour
 
     [SerializeField] private byte tagGroupToMonitor;
     [SerializeField] private GroupOutputType outputGroupType;
-    [SerializeField] private byte stateToListenFor; // If outputType=OutputNamesInState, which state should we listen for?
+    [SerializeField] private byte[] statesToListenFor; // If outputType=OutputNamesInState, which state(s) should we listen for?
     [SerializeField] private bool outputStateCount; // If outputType=OutputNamesInState, should we output the count of players in that state as well?
     
     [SerializeField] private string outputNameSeparator = "\n";
@@ -118,11 +118,16 @@ public class PlayerTagListener : UdonSharpBehaviour
                 if (outputText.Length > 0) { outputText += outputNameSeparator; }
                 outputText += tagData.owner.displayName;
             }
-            else if (outputGroupType == GroupOutputType.OutputNamesInState && state == stateToListenFor)
+            else if (outputGroupType == GroupOutputType.OutputNamesInState)
             {
-                if (outputText.Length > 0) { outputText += outputNameSeparator; }
-                outputText += tagData.owner.displayName;
-                if (outputStateCount) { outputCount++; }
+                bool inState = false;
+                for (int j = 0; j < statesToListenFor.Length; j++) { if (state == statesToListenFor[j]) { inState = true; break; } }
+                if (inState)
+                {
+                    if (outputText.Length > 0) { outputText += outputNameSeparator; }
+                    outputText += tagData.owner.displayName;
+                    if (outputStateCount) { outputCount++; }
+                }
             }
         }
         if (optionalOutputTextElement != null) { optionalOutputTextElement.text = outputText; }

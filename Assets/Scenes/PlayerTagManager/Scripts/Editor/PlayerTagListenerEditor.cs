@@ -4,6 +4,9 @@ using UnityEngine;
 [CustomEditor(typeof(PlayerTagListener))]
 public class PlayerTagListenerEditor : Editor
 {
+
+    private bool showStates = true;
+
     public override void OnInspectorGUI()
     {
         SerializedProperty playerTagManagerProp = serializedObject.FindProperty("playerTagManager");
@@ -52,15 +55,33 @@ public class PlayerTagListenerEditor : Editor
                     EditorGUILayout.PropertyField(tagOutputTypeProp);
                     if (tagOutputTypeProp.enumValueIndex == (int)GroupOutputType.OutputNamesInState && selectedGroupValue < tagGroups.Length)
                     {
-                        SerializedProperty stateToListenForProp = serializedObject.FindProperty("stateToListenFor");
-                        int stateSize = tagGroups[selectedGroupValue].size();
-                        string[] tagGroupStates = new string[stateSize];
-                        for (int j = 0; j < stateSize; j++)
+                        showStates = EditorGUILayout.Foldout(showStates, new GUIContent("States to Monitor"), true, EditorStyles.foldoutHeader);
+                        if (showStates)
                         {
-                            tagGroupStates[j] = tagGroups[selectedGroupValue].GetStateName(j);
+                            int stateSize = tagGroups[selectedGroupValue].size();
+                            string[] tagGroupStates = new string[stateSize];
+                            for (int j = 0; j < stateSize; j++)
+                            {
+                                tagGroupStates[j] = tagGroups[selectedGroupValue].GetStateName(j);
+                            }
+                            if (tagGroupStates.Length == 0) { EditorGUILayout.HelpBox("The currently selected group tag has no defined states.", MessageType.Error); }
+                            else
+                            {
+                                SerializedProperty statesToListenForProp = serializedObject.FindProperty("statesToListenFor");
+                                int indextoRemoveOnClick = -1;
+                                for (int j = 0; j < statesToListenForProp.arraySize; j++)
+                                {
+                                    SerializedProperty stateProp = statesToListenForProp.GetArrayElementAtIndex(j);
+                                    EditorGUILayout.BeginHorizontal();
+                                    stateProp.intValue = EditorGUILayout.Popup($"State {j}", Mathf.Clamp(stateProp.intValue, 0, stateSize - 1), tagGroupStates);
+                                    if (GUILayout.Button("-", GUILayout.Width(24))) { indextoRemoveOnClick = j; }
+                                    EditorGUILayout.EndHorizontal();
+                                }
+                                if (indextoRemoveOnClick >= 0) { statesToListenForProp.DeleteArrayElementAtIndex(indextoRemoveOnClick); }
+                                if (GUILayout.Button("+ Add State"))  { statesToListenForProp.arraySize++; }
+                            }
                         }
-                        if (tagGroupStates.Length == 0) { EditorGUILayout.HelpBox("The currently selected group tag has no defined states.", MessageType.Error); }
-                        stateToListenForProp.intValue = EditorGUILayout.Popup("State to Listen For", Mathf.Clamp(stateToListenForProp.intValue, 0, stateSize - 1), tagGroupStates);
+
                         EditorGUILayout.PropertyField(serializedObject.FindProperty("outputStateCount"));
                     }
 

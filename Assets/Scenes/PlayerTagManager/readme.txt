@@ -26,6 +26,6 @@
 6. [OPTIONAL] To monitor a given tag and output the results somewhere (such as a text field or to expose it to script), place the PlayerTagListener in your scene.
     6a. Assign the PlayerTagManager from the hierarchy to the PlayerTagListener.
     6b. Select whether to listen for a Singletype or Group-type tag.
-    6c. Select the tag to monitor, select the desired output type, and, if applicable, select which state to monitor.
+    6c. Select the tag to monitor, select the desired output type, and, if applicable, select which state(s) to monitor.
     6d. [OPTIONAL] Define what will separate the names/states. For example, if you want every name for the tag holder to be on a new line, use '\n' in the Output Name Separator field
     6e. [OPTIONAL] Assign the Output Text Element to the TMP_Text element you want the output to appear in.
