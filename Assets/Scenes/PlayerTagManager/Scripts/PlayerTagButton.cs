@@ -6,7 +6,7 @@ using VRC.Udon;
 
 public enum TagButtonType
 {
-    Single, GroupNextValue, GroupSetValue
+    Single, GroupSetValue, GroupNextValue
 }
 
 [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
@@ -21,8 +21,39 @@ public class PlayerTagButton : UdonSharpBehaviour
     [SerializeField] private byte tagSingleToToggle;
     [SerializeField] private byte tagGroupToToggle;
     [SerializeField] private byte setTagGroupValue;
+    private string inspectorInteractText = string.Empty;
 
-    public void OnClick()
+    private void Start()
+    {
+        if (playerTagManager == null) { gameObject.SetActive(false); return; }
+        inspectorInteractText = InteractionText;
+        RefreshInteractText();
+    }
+
+    private void RefreshInteractText()
+    {
+        if (tagButtonType == TagButtonType.Single && tagSingleToToggle < playerTagManager.tagSingleNames.Length)
+        {
+            InteractionText = inspectorInteractText.Replace("$TAG", playerTagManager.tagSingleNames[tagSingleToToggle]);
+        }
+        else if (tagButtonType == TagButtonType.GroupNextValue && tagGroupToToggle < playerTagManager.tagGroups.Length)
+        {
+            InteractionText = inspectorInteractText.Replace("$TAG", playerTagManager.tagGroups[tagGroupToToggle].tagGroupName)
+                .Replace("$STATE", playerTagManager.tagGroups[tagGroupToToggle].GetStateName(playerTagManager.GetNextStateInTagGroup(tagGroupToToggle)));
+        }
+        else if (tagButtonType == TagButtonType.GroupSetValue && tagGroupToToggle < playerTagManager.tagGroups.Length)
+        {
+            InteractionText = inspectorInteractText.Replace("$TAG", playerTagManager.tagGroups[tagGroupToToggle].tagGroupName)
+                .Replace("$STATE", playerTagManager.tagGroups[tagGroupToToggle].GetStateName(setTagGroupValue));
+        }
+    }
+
+    public void OnPush()
+    {
+        Interact();
+    }
+
+    public override void Interact()
     {
         if (tagButtonType == TagButtonType.Single) { playerTagManager.SetTagSingle(tagSingleToToggle, this); }
         else if (tagButtonType == TagButtonType.GroupNextValue) { playerTagManager.SetTagGroup(tagGroupToToggle, this); }
@@ -31,6 +62,6 @@ public class PlayerTagButton : UdonSharpBehaviour
 
     internal void UpdateValueCallback(bool isSingle, int newValue)
     {
-        // Feel free to do things here
+        if (tagButtonType == TagButtonType.GroupNextValue) { RefreshInteractText(); }
     }
 }

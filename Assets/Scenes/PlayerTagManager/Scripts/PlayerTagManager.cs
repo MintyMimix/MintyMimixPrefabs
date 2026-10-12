@@ -94,13 +94,19 @@ public class PlayerTagManager : UdonSharpBehaviour
         if (callbackButton != null) { callbackButton.UpdateValueCallback(true, newValue); }
     }
 
-    internal void SetTagGroup(byte indexDesired, PlayerTagButton callbackButton = null)
+    internal byte GetNextStateInTagGroup(byte indexDesired)
     {
-        if (indexDesired >= tagGroups.Length || localTagData == null) { return; }
+        if (indexDesired >= tagGroups.Length || localTagData == null) { return 0; }
         byte valueDesired = localTagData.GetTagStateGroup(indexDesired);
         if ((valueDesired + 1) >= tagGroups[indexDesired].size() || (valueDesired + 1) > byte.MaxValue) { valueDesired = 0; }
         else { valueDesired = (byte)(valueDesired + 1); }
-        SetTagGroup(indexDesired, valueDesired, callbackButton);
+        return valueDesired;
+    }
+
+    internal void SetTagGroup(byte indexDesired, PlayerTagButton callbackButton = null)
+    {
+        if (indexDesired >= tagGroups.Length || localTagData == null) { return; }
+        SetTagGroup(indexDesired, GetNextStateInTagGroup(indexDesired), callbackButton);
     }
 
     internal void SetTagGroup(byte indexDesired, byte valueDesired, PlayerTagButton callbackButton = null)
@@ -191,14 +197,15 @@ public class PlayerTagManager : UdonSharpBehaviour
 
     // Sometimes we want to have screens and other objects read in a list of names that the tags apply to.
     // This is where the PlayerTagListeners come in. Every time a player's tag is updated, the listeners receive a callback.
-    internal void RegisterListenerSingle(PlayerTagListenerSingle listener, byte tagSingleToMonitor)
+    internal void RegisterListenerSingle(PlayerTagListener listener, byte tagSingleToMonitor)
     {
         if (!Utilities.IsValid(listener)) { return; }
         int index = tagSingleToMonitor;
         if (!tagListenersSingle.ContainsKey(index)) { tagListenersSingle.Add(index, new DataList()); }
         tagListenersSingle[index].DataList.Add(listener);
     }
-    internal void RegisterListenerGroup(PlayerTagListenerGroup listener, byte tagGrouptoMonitor)
+
+    internal void RegisterListenerGroup(PlayerTagListener listener, byte tagGrouptoMonitor)
     {
         if (!Utilities.IsValid(listener)) { return; }
         int index = tagGrouptoMonitor;
@@ -217,9 +224,8 @@ public class PlayerTagManager : UdonSharpBehaviour
         for (int i = 0; i < listenerCnt; i++)
         {
             if (listenerList[i].Error != DataError.None) { listenerList.RemoveAt(i); i--; listenerCnt--; continue; }
-            if (isSingle) { ((PlayerTagListenerSingle)listenerList[i].Reference).UpdateOutput(); }
-            else { ((PlayerTagListenerGroup)listenerList[i].Reference).UpdateOutput(); }
-        }
+            ((PlayerTagListener)listenerList[i].Reference).UpdateOutput();
+        } 
     }
 
     internal void CallbackListenersAll(bool isSingle)

@@ -8,7 +8,11 @@ public class PlayerTagButtonEditor : Editor
 {
     public override void OnInspectorGUI()
     {
-        EditorGUILayout.HelpBox("To make this functional, assign this script to the OnClick() event of a Button.\nSet the event to UdonBehaviour.SendCustomEvent(string).\nSet the event name to OnClick (no parentheses).", MessageType.Info);
+        bool isUI = ((Component)target).transform is RectTransform;
+        if (isUI)
+        {
+            EditorGUILayout.HelpBox("Because this script is on a RectTransform, you must assign this script to a UI event (such as the OnClick() event of a button) and set the event to UdonBehaviour.Interact().", MessageType.Info);
+        }   
 
         SerializedProperty playerTagManagerProp = serializedObject.FindProperty("playerTagManager");
         EditorGUILayout.PropertyField(playerTagManagerProp);
@@ -20,7 +24,7 @@ public class PlayerTagButtonEditor : Editor
             EditorGUILayout.PropertyField(tagButtonTypeProp,
                 new GUIContent("Button Type",
                     "• Single: This button will toggle a Single-type tag ON/OFF." +
-                    "\n• Group Next Value: This button will a Group-type tag to the next state in its list. (For example, if a Group tag's states are 'Vanilla, Chocolate, Strawberry', and the current value is Vanilla, the value will become Chocolate, then Strawberry, then Vanilla again." +
+                    "\n• Group Next Value: This button will a Group-type tag to the next state in its list. (For example, if a Group tag's states are 'Vanilla, Chocolate, Strawberry', and the current value is Vanilla, the value will become Chocolate, then Strawberry, then Vanilla again.)" +
                     "\n• Group Set Value: This button will a Group-type tag to a specific state."
                     ));
             if (tagButtonTypeProp.enumValueIndex == (int)TagButtonType.Single)
@@ -62,6 +66,14 @@ public class PlayerTagButtonEditor : Editor
                         setTagGroupValueProp.intValue = EditorGUILayout.Popup("Set State", Mathf.Clamp(setTagGroupValueProp.intValue, 0, stateSize - 1), tagGroupStates);
                     }
                 }
+            }
+
+            if (!isUI) 
+            {
+                EditorGUILayout.HelpBox(tagButtonTypeProp.enumValueIndex == (int)TagButtonType.Single ?
+                    "If you want to use the tag name in the interaction text, type $TAG." :
+                    "You can use $TAG for tag name and $STATE for assigned tag state in the interaction text.", MessageType.None);
+                UdonSharpEditor.UdonSharpGUI.DrawInteractSettings((PlayerTagButton)target); 
             }
 
         }
