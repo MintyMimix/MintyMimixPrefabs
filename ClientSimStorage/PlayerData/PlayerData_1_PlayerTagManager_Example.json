@@ -1,1 +1,18 @@
-{}
+{
+  "PTM_Tags": {
+    "LastUpdated": "2026-10-25T13:16:26.228425-04:00",
+    "Key": "PTM_Tags",
+    "Value": {
+      "type": "String",
+      "value": "{\"Ice Cream Flavor Preference\":1,\"Headpats Preference\":3,\"Visitor Status\":1}"
+    }
+  },
+  "PTM_Pref": {
+    "LastUpdated": "2026-10-25T13:16:43.9354258-04:00",
+    "Key": "PTM_Pref",
+    "Value": {
+      "type": "String",
+      "value": "{\"DisplayTagsGlobal\":true,\"DisplayOwnTags\":true,\"DisplayTagsPlayer\":true}"
+    }
+  }
+}

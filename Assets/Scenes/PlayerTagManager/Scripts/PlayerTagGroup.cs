@@ -1,6 +1,7 @@
 ﻿
 using UdonSharp;
 using UnityEngine;
+using UnityEngine.UI;
 using VRC.SDKBase;
 using VRC.Udon;
 
@@ -12,9 +13,14 @@ public class PlayerTagGroup : UdonSharpBehaviour
     /// </summary>
 
     [SerializeField] public string tagGroupName;
+    [SerializeField] internal bool tagPersist = true;
+    [SerializeField] internal float scaleInPanel = 1.0f;
     [SerializeField] private string[] tagStateNames;
     [SerializeField] private Color[] tagColors;
+    [SerializeField] private Sprite[] tagImages;
     [SerializeField] private bool[] tagDisplayAboveHead;
+    [SerializeField] internal bool tagUseImage = false;
+	[SerializeField] internal bool tagDisplayText = true;
 
     public byte size() 
     {
@@ -30,6 +36,11 @@ public class PlayerTagGroup : UdonSharpBehaviour
     {
         if (state == 0 || state > tagColors.Length) { return Color.black; }
         return tagColors[state - 1];
+    }
+    internal Sprite GetImage(int state)
+    {
+        if (state == 0 || state > tagImages.Length) { return null; }
+        return tagImages[state - 1];
     }
     internal bool GetDisplayAboveHead(int state)
     {

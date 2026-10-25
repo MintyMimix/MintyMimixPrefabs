@@ -1,6 +1,7 @@
 ﻿
 using UdonSharp;
 using UnityEngine;
+using UnityEngine.Analytics;
 using VRC.SDK3.UdonNetworkCalling;
 using VRC.SDKBase;
 using VRC.Udon;
@@ -20,6 +21,7 @@ public class PlayerTagData : UdonSharpBehaviour
     [SerializeField] private PlayerTagManager playerTagManager; // The global tag manager.
     [SerializeField] private RectTransform tagCanvas; // The canvas that gets displayed for tags.
     [SerializeField] private RectTransform tagDisplayPanelTemplate; // Gets instantatied based on the number of single & group tags. Used for displaying tag elements.
+    [SerializeField] private RectTransform tagDisplayClusterTemplate; // Gets instantatied based on the number of single & group tags. Used for displaying tag elements.
     [SerializeField] private float tagCanvasHeightOffset; // How high above the player's head should this canvas be?
 
     // Runtime
@@ -32,6 +34,7 @@ public class PlayerTagData : UdonSharpBehaviour
     private RectTransform[] tagDisplayPanels;
     private UnityEngine.UI.Image[] tagDisplayImg;
     private TMPro.TMP_Text[] tagDisplayTxt;
+    private RectTransform[] tagClusterPanels;
 
     [UdonSynced] internal bool prefDisplayTagsPlayer = true; // Does the owner want to display their own player tags?
     private bool localDisplayTags = false; // Non-networked version of the above.
@@ -39,44 +42,68 @@ public class PlayerTagData : UdonSharpBehaviour
     // Since we can't sync a dict, we'll store an array for every value possible tag state.
     // byte is used since we will never have a negative value, and it's unlikely a world creator will ever create more than 255 tags / states.
     // While it's theoretically possible, I would question their implementation.
-    [UdonSynced] private bool[] tagSingleStates = new bool[0];
     [UdonSynced] private byte[] tagGroupStates = new byte[0];
-    private bool[] localSingleStates = new bool[0];
     private byte[] localGroupStates = new byte[0];
     private int totalTagsActive = 0;
 
     private void Start()
     {
         owner = Networking.GetOwner(gameObject);
-        tagSingleStates = new bool[playerTagManager.tagSingleNames.Length];
         tagGroupStates = new byte[playerTagManager.tagGroups.Length];
-        localSingleStates = new bool[tagSingleStates.Length];
         localGroupStates = new byte[tagGroupStates.Length];
         // Initialize display panels.
-        int totalTags = playerTagManager.tagSingleNames.Length + playerTagManager.tagGroups.Length;
+        int totalTags = playerTagManager.tagGroups.Length;
         tagDisplayPanels = new RectTransform[totalTags];
         tagDisplayImg = new UnityEngine.UI.Image[totalTags];
         tagDisplayTxt = new TMPro.TMP_Text[totalTags];
         for (int i = 0; i < totalTags; i++)
         {
             // Don't create panels for tags that will never display anything.
-            if (i < playerTagManager.tagSingleNames.Length && !playerTagManager.tagSingleDisplayAboveHead[i]) { continue; }
-            else if (i >= playerTagManager.tagSingleNames.Length)
+            bool shouldDisplay = false;
+            for (int j = 0; j < playerTagManager.tagGroups[i].size(); j++)
             {
-                int groupIndex = i - playerTagManager.tagSingleNames.Length;
-                bool shouldDisplay = false;
-                for (int j = 0; j < playerTagManager.tagGroups[groupIndex].size(); j++)
-                {
-                    if (playerTagManager.tagGroups[groupIndex].GetDisplayAboveHead(j)) { shouldDisplay = true; break; }
-                }
-                if (!shouldDisplay) { continue; }
+                if (playerTagManager.tagGroups[i].GetDisplayAboveHead(j)) { shouldDisplay = true; break; }
             }
+            if (!shouldDisplay) { continue; }
             tagDisplayPanels[i] = Instantiate(tagDisplayPanelTemplate.gameObject, tagDisplayPanelTemplate.parent).GetComponent<RectTransform>();
+            tagDisplayPanels[i].sizeDelta = new Vector2(tagDisplayPanels[i].sizeDelta.x, tagDisplayPanels[i].sizeDelta.y * playerTagManager.tagGroups[i].scaleInPanel);
             tagDisplayImg[i] = tagDisplayPanels[i].GetComponent<UnityEngine.UI.Image>();
             tagDisplayTxt[i] = tagDisplayPanels[i].GetComponentInChildren<TMPro.TMP_Text>();
             tagDisplayPanels[i].gameObject.SetActive(false);
         }
+
+        int ClusterCount = playerTagManager.tagClusters.Length;
+        tagClusterPanels = new RectTransform[ClusterCount];
+        for (int i = 0; i < ClusterCount; i++)
+        {
+            if (playerTagManager.tagClusters == null || ClusterCount == 0) { continue; }
+            tagClusterPanels[i] = Instantiate(tagDisplayClusterTemplate.gameObject, tagDisplayClusterTemplate.parent).GetComponent<RectTransform>();
+            tagClusterPanels[i].sizeDelta = new Vector2(tagClusterPanels[i].sizeDelta.x, tagClusterPanels[i].sizeDelta.y * playerTagManager.tagClusters[i].scaleInPanel);
+        }
+
+        // Parent groups in their Clusters
+        for (int i = 0; i < ClusterCount; i++)
+        {
+            PlayerTagCluster Cluster = playerTagManager.tagClusters[i];
+            if (Cluster == null || tagClusterPanels[i] == null) { continue; }
+            for (int j = 0; j < Cluster.tagsInCluster.Length; j++)
+            {
+                int groupIndex = -1;
+                for (int k = 0; k < totalTags; k++)
+                {
+                    if (Cluster.tagsInCluster[j] == playerTagManager.tagGroups[k])
+                    {
+                        groupIndex = k; break;
+                    }
+                }
+                if (groupIndex >= 0 && tagDisplayPanels[groupIndex] != null)
+                {
+                    tagDisplayPanels[groupIndex].transform.SetParent(tagClusterPanels[i].transform);
+                }
+            }
+        }
         tagDisplayPanelTemplate.gameObject.SetActive(false);
+        tagDisplayClusterTemplate.gameObject.SetActive(false);
 
         processingReady = true;
 
@@ -87,31 +114,18 @@ public class PlayerTagData : UdonSharpBehaviour
         
     }
 
-    internal void SetTagState(bool isSingle, byte tagIndex, byte tagState)
+    internal void SetTagState(byte tagIndex, byte tagState)
     {
         // Owner-only.
         if (owner == null || !owner.isLocal) { return; }
-        if (isSingle)
-        {
-            if (tagState > 1) { return; } // False (0) / True (1) states only
-            if (tagIndex >= tagSingleStates.Length) { return; }
-            tagSingleStates[tagIndex] = tagState == 1;
-        }
-        else
-        {
-            if (tagIndex >= tagGroupStates.Length || tagState >= playerTagManager.tagGroups[tagIndex].size()) { return; }
-            tagGroupStates[tagIndex] = tagState;
-        }
+        if (tagIndex >= tagGroupStates.Length || tagState >= playerTagManager.tagGroups[tagIndex].size()) { return; }
+        tagGroupStates[tagIndex] = tagState;
         QueueSerialization();
+
+        if (playerTagManager.tagGroups[tagIndex].tagPersist) { playerTagManager.TrySyncTag(tagIndex, tagState); }
     }
 
-    internal bool GetTagStateSingle(byte tagIndex)
-    {
-        if (tagIndex >= tagSingleStates.Length) { return false; }
-        return tagSingleStates[tagIndex];
-    }
-
-    internal byte GetTagStateGroup(byte tagIndex)
+    internal byte GetTagState(byte tagIndex)
     {
         if (tagIndex >= tagGroupStates.Length) { return 0; }
         return tagGroupStates[tagIndex];
@@ -159,55 +173,62 @@ public class PlayerTagData : UdonSharpBehaviour
     internal void RefreshPanels(bool refreshAll)
     {
         // Detect changes to the values.
-        for (int i = 0; i < tagSingleStates.Length; i++)
-        {
-            if (tagSingleStates[i] != localSingleStates[i] || refreshAll)
-            {
-                if (tagDisplayPanels[i] != null)
-                {
-                    bool isActive = ShouldDisplayTagSingle(i);
-                    if (tagDisplayPanels[i].gameObject.activeSelf != isActive) { tagDisplayPanels[i].gameObject.SetActive(isActive); if (isActive) { totalTagsActive++; } else { totalTagsActive--; } }
-                    tagDisplayImg[i].color = playerTagManager.tagSingleColors[i];
-                    tagDisplayTxt[i].text = playerTagManager.tagSingleNames[i];
-                }
-                playerTagManager.CallbackListeners(true, i);
-                localSingleStates[i] = tagSingleStates[i];
-            }
-        }
         for (int i = 0; i < tagGroupStates.Length; i++)
         {
             if (tagGroupStates[i] != localGroupStates[i] || refreshAll)
             {
-                int displayIndex = tagSingleStates.Length + i;
-                if (tagDisplayPanels[displayIndex] != null)
+                if (tagDisplayPanels[i] != null)
                 {
-                    bool isActive = ShouldDisplayTagGroup(i, tagGroupStates[i]);
-                    if (tagDisplayPanels[displayIndex].gameObject.activeSelf != isActive) { tagDisplayPanels[displayIndex].gameObject.SetActive(isActive); if (isActive) { totalTagsActive++; } else { totalTagsActive--; } }
-                    tagDisplayImg[displayIndex].color = playerTagManager.tagGroups[i].GetColor(tagGroupStates[i]);
-                    tagDisplayTxt[displayIndex].text = playerTagManager.tagGroups[i].GetStateName(tagGroupStates[i]);
+                    bool isActive = ShouldDisplayTag(i, tagGroupStates[i]);
+                    if (tagDisplayPanels[i].gameObject.activeSelf != isActive) { tagDisplayPanels[i].gameObject.SetActive(isActive); if (isActive) { totalTagsActive++; } else { totalTagsActive--; } }
+                    if (playerTagManager.tagGroups[i].tagUseImage)
+                    {
+                        Sprite groupImage = playerTagManager.tagGroups[i].GetImage(tagGroupStates[i]);
+                        if (tagDisplayImg[i] != null)
+                        {
+                            tagDisplayImg[i].sprite = groupImage == null ? playerTagManager.tagFallbackImage : groupImage;
+                            tagDisplayImg[i].preserveAspect = groupImage != null;
+                            tagDisplayImg[i].color = Color.white;
+                        }
+                    }
+                    else
+                    {
+                        if (tagDisplayImg[i] != null)
+                        {
+                            tagDisplayImg[i].color = playerTagManager.tagGroups[i].GetColor(tagGroupStates[i]);
+                            tagDisplayImg[i].preserveAspect = false;
+                        }
+                    }
+                    if (tagDisplayTxt[i] != null)
+                    {
+                        tagDisplayTxt[i].text = playerTagManager.tagGroups[i].tagDisplayText ? playerTagManager.tagGroups[i].GetStateName(tagGroupStates[i]) : "";
+                    }
                 }
-                playerTagManager.CallbackListeners(false, i);
+                playerTagManager.CallbackListeners(i);
                 localGroupStates[i] = tagGroupStates[i];
             }
+        }
+        for (int i = 0; i < tagClusterPanels.Length; i++)
+        {
+            if (tagClusterPanels[i] == null) { continue; }
+            bool shouldBeActive = false;
+            for (int j = 0; j < tagClusterPanels[i].childCount; j++)
+            {
+                Transform childPanel = tagClusterPanels[i].GetChild(j);
+                if (childPanel == null) { continue; }
+                if (childPanel.gameObject.activeSelf) { shouldBeActive = true; break; }
+            }
+            if (tagClusterPanels[i].gameObject.activeSelf != shouldBeActive) { tagClusterPanels[i].gameObject.SetActive(shouldBeActive); }
         }
     }
 
     // Check if a tag should be displayed, based on both the local player's, this player's, and the tag's preferences.
-    private bool ShouldDisplayTagSingle(int tagSingleIndex)
-    {
-        if (tagSingleIndex >= tagSingleStates.Length) { return false; }
-        if (!playerTagManager.prefDisplayTagsGlobal || !prefDisplayTagsPlayer) { return false; }
-        if (owner != null && owner.isLocal && !playerTagManager.prefDisplayOwnTags) { return false; }
-        if (tagDisplayPanels == null) { return tagSingleStates[tagSingleIndex]; }
-        else { return tagSingleStates[tagSingleIndex] && tagDisplayPanels[tagSingleIndex] != null; }
-    }
-
-    private bool ShouldDisplayTagGroup(int tagGroupIndex, byte tagGroupState)
+    private bool ShouldDisplayTag(int tagGroupIndex, byte tagGroupState)
     {
         if (tagGroupIndex >= tagGroupStates.Length) { return false; }
         if (tagGroupStates[tagGroupIndex] == 0 || !playerTagManager.prefDisplayTagsGlobal || !prefDisplayTagsPlayer)  { return false; }
 		if (owner != null && owner.isLocal && !playerTagManager.prefDisplayOwnTags) { return false; }
-		if (playerTagManager.tagGroups[tagGroupIndex].GetDisplayAboveHead(tagGroupState) && tagDisplayPanels[tagSingleStates.Length + tagGroupIndex] != null) { return true; }
+		if (playerTagManager.tagGroups[tagGroupIndex].GetDisplayAboveHead(tagGroupState) && tagDisplayPanels[tagGroupIndex] != null) { return true; }
         return false; 
     }
 
@@ -221,59 +242,10 @@ public class PlayerTagData : UdonSharpBehaviour
 
         headData = owner.GetTrackingData(VRCPlayerApi.TrackingDataType.Head);
         float calcHeightOffset = tagCanvasHeightOffset + ((totalTagsActive - 1) * (0.2f / 3f));
-		tagCanvas.transform.SetPositionAndRotation(headData.position + (calcHeightOffset * Vector3.up), playerTagManager.localHeadData.rotation);
+        Quaternion headRot = playerTagManager.localHeadData.rotation;
+        headRot = Quaternion.Euler(new Vector3(0, headRot.eulerAngles.y, 0));
+        tagCanvas.transform.SetPositionAndRotation(headData.position + (calcHeightOffset * Vector3.up), headRot);
     }
 
-    // Old implementation. Only use if network clogging seems to be a major issue.
-    /*internal void SetTagState(bool isSingle, byte tagIndex, byte tagState)
-   {
-       // Owner-only.
-       if (owner == null || !owner.isLocal) { return; }
-       if (isSingle)
-       {
-           if (tagState > 1) { return; } // False (0) / True (1) states only
-           int inArrayIndex = FindTag(tagIndex, tagSingleIndices);
-           if (inArrayIndex != -1) { tagSingleIndices[inArrayIndex] = tagState; }
-           else { AddTagSingle(tagIndex, tagState == 1, ref tagSingleIndices, ref tagSingleStates); }
-       }
-       else
-       {
-           int inArrayIndex = FindTag(tagIndex, tagGroupIndices);
-           if (inArrayIndex != -1) { tagGroupIndices[inArrayIndex] = tagState; }
-           else { AddTagGroup(tagIndex, tagState, ref tagGroupIndices, ref tagGroupStates); }
-       }
-       QueueSerialization();
-   }
-
-   private int FindTag(byte indexDesired, byte[] indexArr)
-   {
-       if (indexArr == null || indexArr.Length == 0) { return -1; }
-       for (byte i = 0; i < indexArr.Length; i++) { if (indexArr[i] == indexDesired) return i; }
-       return -1;
-   }
-
-   private void AddTagSingle(byte indexDesired, bool valueDesired, ref byte[] indexArr, ref bool[] valueArr)
-   {
-       if (indexArr == null || valueArr == null) { return; }
-       byte[] newIndexArr = new byte[indexArr.Length + 1]; 
-       bool[] newValueArr = new bool[valueArr.Length + 1];
-       for (int i = 0; i < indexArr.Length; i++) { newIndexArr[i] = indexArr[i]; newValueArr[i] = valueArr[i]; }
-       newIndexArr[indexArr.Length] = indexDesired;
-       newValueArr[valueArr.Length] = valueDesired;
-       indexArr = newIndexArr;
-       valueArr = newValueArr;
-   }
-
-   private void AddTagGroup(byte indexDesired, byte valueDesired, ref byte[] indexArr, ref byte[] valueArr)
-   {
-       if (indexArr == null || valueArr == null) { return; }
-       byte[] newIndexArr = new byte[indexArr.Length + 1];
-       byte[] newValueArr = new byte[valueArr.Length + 1];
-       for (int i = 0; i < indexArr.Length; i++) { newIndexArr[i] = indexArr[i]; newValueArr[i] = valueArr[i]; }
-       newIndexArr[indexArr.Length] = indexDesired;
-       newValueArr[valueArr.Length] = valueDesired;
-       indexArr = newIndexArr;
-       valueArr = newValueArr;
-   }*/
-
+   
 }
