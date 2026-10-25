@@ -1,17 +1,10 @@
 ﻿
 using UdonSharp;
 using UnityEngine;
+using VRC.SDK3.Data;
 using VRC.SDKBase;
 using VRC.Udon;
 
-public enum ListenerType
-{
-    Single, Group
-}
-public enum SingleOutputType
-{
-    TagIsActive, TagIsNOTActive, NameAndTag
-}
 public enum GroupOutputType
 {
     OutputNamesInState, OutputNamesInActiveStates, OutputNamesAndTagsInActiveStates, OutputNamesAndTagsInAllStates
@@ -27,10 +20,6 @@ public class PlayerTagListener : UdonSharpBehaviour
     // Expect redundant code; this used to be two scripts that got merged into one. (PlayerTagListenerSingle/PlayerTagListenerGroup -> PlayerTagListener)
 
     [SerializeField] private PlayerTagManager playerTagManager;
-    [SerializeField] private ListenerType listenerType;
-
-    [SerializeField] private byte tagSingleToMonitor;
-    [SerializeField] private SingleOutputType outputSingleType;
 
     [SerializeField] private byte tagGroupToMonitor;
     [SerializeField] private GroupOutputType outputGroupType;
@@ -49,8 +38,7 @@ public class PlayerTagListener : UdonSharpBehaviour
     private void Start()
     {
         if (playerTagManager == null) { Destroy(gameObject); }
-        if (listenerType == ListenerType.Single) { playerTagManager.RegisterListenerSingle(this, tagSingleToMonitor); }
-        else if (listenerType == ListenerType.Group) { playerTagManager.RegisterListenerGroup(this, tagGroupToMonitor); }
+        playerTagManager.RegisterListenerGroup(this, tagGroupToMonitor);
     }
 
     internal void SetGroupIndex(int index)
@@ -60,76 +48,57 @@ public class PlayerTagListener : UdonSharpBehaviour
 
     internal void UpdateOutput()
     {
-        if (listenerType == ListenerType.Single) { UpdateOutputSingle(); }
-        else if (listenerType == ListenerType.Group) { UpdateOutputGroup(); }
-    }
+		if (tagGroupIndex < 0 || tagGroupIndex >= playerTagManager.tagGroups.Length || tagGroupIndex > byte.MaxValue) { return; }
+		outputText = "";
+		outputCount = 0;
+		int plyCnt = playerTagManager.allTagData.Count;
+		byte groupIndex = (byte)tagGroupIndex;
+		if (plyCnt <= 0) { return; }
+		// Before starting, sort tags by owner names, alphabetically
+		DataDictionary tagByOwner = new DataDictionary();
+		for (int i = 0; i < plyCnt; i++)
+		{
+			if (playerTagManager.allTagData[i].Error != VRC.SDK3.Data.DataError.None) { continue; }
+			PlayerTagData tagData = (PlayerTagData)playerTagManager.allTagData[i].Reference;
+			if (!Utilities.IsValid(tagData.owner)) { continue; }
+			tagByOwner.Add(tagData.owner.displayName, tagData);
+		}
+		int ownerCnt = tagByOwner.Count;
+		if (ownerCnt == 0) { if (optionalOutputTextElement != null) { optionalOutputTextElement.text = outputText; } return; }
+		DataList ownerNames = tagByOwner.GetKeys();
+		ownerNames.Sort();
 
-    private void UpdateOutputSingle()
-    {
-        if (tagSingleToMonitor >= playerTagManager.tagSingleNames.Length) { return; }
-        int plyCnt = playerTagManager.allTagData.Count;
-        if (plyCnt <= 0) { return; }
-        outputText = "";
-        for (int i = 0; i < plyCnt; i++)
-        {
-            if (playerTagManager.allTagData[i].Error != VRC.SDK3.Data.DataError.None) { continue; }
-            PlayerTagData tagData = (PlayerTagData)playerTagManager.allTagData[i].Reference;
-            if (!Utilities.IsValid(tagData.owner)) { continue; }
-            bool state = tagData.GetTagStateSingle(tagSingleToMonitor);
+		// Then output accordingly
+		for (int i = 0; i < ownerCnt; i++)
+		{
+			if (ownerNames[i].Error != VRC.SDK3.Data.DataError.None) { continue; }
+			PlayerTagData tagData = (PlayerTagData)tagByOwner[ownerNames[i]].Reference;
+			byte state = tagData.GetTagState(groupIndex);
 
-            if (outputSingleType == SingleOutputType.NameAndTag)
-            {
-                if (outputText.Length > 0) { outputText += outputNameSeparator; }
-                outputText += tagData.owner.displayName + outputTagSeparator + (state ? "O" : "X");
-            }
-            else if ((outputSingleType == SingleOutputType.TagIsActive && state)
-                || (outputSingleType == SingleOutputType.TagIsNOTActive && !state))
-            {
-                if (outputText.Length > 0) { outputText += outputNameSeparator; }
-                outputText += tagData.owner.displayName;
-            }
-        }
-        if (optionalOutputTextElement != null) { optionalOutputTextElement.text = outputText; }
-    }
+			if (outputGroupType == GroupOutputType.OutputNamesAndTagsInAllStates
+				|| (outputGroupType == GroupOutputType.OutputNamesAndTagsInActiveStates && state > 0))
+			{
+				if (outputText.Length > 0) { outputText += outputNameSeparator; }
+				outputText += tagData.owner.displayName + outputTagSeparator + playerTagManager.tagGroups[groupIndex].GetStateName(state);
+			}
+			else if (outputGroupType == GroupOutputType.OutputNamesInActiveStates && state > 0)
+			{
+				if (outputText.Length > 0) { outputText += outputNameSeparator; }
+				outputText += tagData.owner.displayName;
+			}
+			else if (outputGroupType == GroupOutputType.OutputNamesInState)
+			{
+				bool inState = false;
+				for (int j = 0; j < statesToListenFor.Length; j++) { if (state == statesToListenFor[j]) { inState = true; break; } }
+				if (inState)
+				{
+					if (outputText.Length > 0) { outputText += outputNameSeparator; }
+					outputText += tagData.owner.displayName;
+					if (outputStateCount) { outputCount++; }
+				}
+			}
+		}
+		if (optionalOutputTextElement != null) { optionalOutputTextElement.text = outputText; }
+	}
 
-    private void UpdateOutputGroup()
-    {
-        if (tagGroupIndex < 0 || tagGroupIndex >= playerTagManager.tagGroups.Length || tagGroupIndex > byte.MaxValue) { return; }
-        outputText = "";
-        outputCount = 0;
-        int plyCnt = playerTagManager.allTagData.Count;
-        byte groupIndex = (byte)tagGroupIndex;
-        if (plyCnt <= 0) { return; }
-        for (int i = 0; i < plyCnt; i++)
-        {
-            if (playerTagManager.allTagData[i].Error != VRC.SDK3.Data.DataError.None) { continue; }
-            PlayerTagData tagData = (PlayerTagData)playerTagManager.allTagData[i].Reference;
-            if (!Utilities.IsValid(tagData.owner)) { continue; }
-            byte state = tagData.GetTagStateGroup(groupIndex);
-
-            if (outputGroupType == GroupOutputType.OutputNamesAndTagsInAllStates
-                || (outputGroupType == GroupOutputType.OutputNamesAndTagsInActiveStates && state > 0))
-            {
-                if (outputText.Length > 0) { outputText += outputNameSeparator; }
-                outputText += tagData.owner.displayName + outputTagSeparator + playerTagManager.tagGroups[groupIndex].GetStateName(state);
-            }
-            else if (outputGroupType == GroupOutputType.OutputNamesInActiveStates && state > 0)
-            {
-                if (outputText.Length > 0) { outputText += outputNameSeparator; }
-                outputText += tagData.owner.displayName;
-            }
-            else if (outputGroupType == GroupOutputType.OutputNamesInState)
-            {
-                bool inState = false;
-                for (int j = 0; j < statesToListenFor.Length; j++) { if (state == statesToListenFor[j]) { inState = true; break; } }
-                if (inState)
-                {
-                    if (outputText.Length > 0) { outputText += outputNameSeparator; }
-                    outputText += tagData.owner.displayName;
-                    if (outputStateCount) { outputCount++; }
-                }
-            }
-        }
-        if (optionalOutputTextElement != null) { optionalOutputTextElement.text = outputText; }
-    }
 }

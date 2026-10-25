@@ -58,7 +58,10 @@ MonoBehaviour:
   tagGroupName: 
   tagStateNames: []
   tagColors: []
+  tagImages: []
   tagDisplayAboveHead: 
+  tagUseImage: 0
+  tagDisplayText: 1
 --- !u!114 &8870649614268947525
 MonoBehaviour:
   m_ObjectHideFlags: 0
