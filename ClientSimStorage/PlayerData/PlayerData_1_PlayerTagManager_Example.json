@@ -1,10 +1,10 @@
 {
   "PTM_Tags": {
-    "LastUpdated": "2026-10-25T13:16:26.228425-04:00",
+    "LastUpdated": "2026-10-31T16:36:12.3537093-04:00",
     "Key": "PTM_Tags",
     "Value": {
       "type": "String",
-      "value": "{\"Ice Cream Flavor Preference\":1,\"Headpats Preference\":3,\"Visitor Status\":1}"
+      "value": "{\"Ice Cream Flavor Preference\":1,\"Headpats Preference\":2,\"Visitor Status\":1}"
     }
   },
   "PTM_Pref": {

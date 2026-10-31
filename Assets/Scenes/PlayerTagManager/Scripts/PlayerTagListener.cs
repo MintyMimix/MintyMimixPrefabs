@@ -60,7 +60,7 @@ public class PlayerTagListener : UdonSharpBehaviour
 		{
 			if (playerTagManager.allTagData[i].Error != VRC.SDK3.Data.DataError.None) { continue; }
 			PlayerTagData tagData = (PlayerTagData)playerTagManager.allTagData[i].Reference;
-			if (!Utilities.IsValid(tagData.owner)) { continue; }
+			if (!Utilities.IsValid(tagData) || !Utilities.IsValid(tagData.owner) || tagByOwner.ContainsKey(tagData.owner.displayName)) { continue; }
 			tagByOwner.Add(tagData.owner.displayName, tagData);
 		}
 		int ownerCnt = tagByOwner.Count;

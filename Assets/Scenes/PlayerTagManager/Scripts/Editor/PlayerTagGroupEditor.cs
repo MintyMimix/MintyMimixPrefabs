@@ -22,10 +22,11 @@ public class PlayerTagGroupEditor : Editor
         SerializedProperty tagColorsProp = serializedObject.FindProperty("tagColors");
         SerializedProperty tagImagesProp = serializedObject.FindProperty("tagImages");
         SerializedProperty tagDisplayAboveHeadProp = serializedObject.FindProperty("tagDisplayAboveHead");
+        int compareSize = tagUseImageProp.boolValue ? tagImagesProp.arraySize : tagColorsProp.arraySize;
 
         if (tagStateNamesProp.arraySize != tagColorsProp.arraySize 
             || tagStateNamesProp.arraySize != tagDisplayAboveHeadProp.arraySize
-            || tagColorsProp.arraySize != tagDisplayAboveHeadProp.arraySize)
+            || compareSize != tagDisplayAboveHeadProp.arraySize)
         {
             EditorGUILayout.HelpBox("All tag options must have a matching number of states.", MessageType.Error);
         }

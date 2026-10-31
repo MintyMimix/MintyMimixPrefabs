@@ -24,7 +24,9 @@ public class PlayerTagGroup : UdonSharpBehaviour
 
     public byte size() 
     {
-        if (tagStateNames == null || tagStateNames.Length >= byte.MaxValue || tagStateNames.Length != tagColors.Length || tagStateNames.Length != tagDisplayAboveHead.Length) { return 0; }
+        if (tagStateNames == null || tagStateNames.Length >= byte.MaxValue || tagStateNames.Length != tagDisplayAboveHead.Length) { return 0; }
+        int compareSize = tagUseImage ? tagImages.Length : tagColors.Length;
+        if (tagStateNames.Length != compareSize) { return 0; }
         return (byte)(tagStateNames.Length + 1);
     }
     public string GetStateName(int state)

@@ -69,6 +69,8 @@ public class PlayerTagData : UdonSharpBehaviour
             tagDisplayPanels[i].sizeDelta = new Vector2(tagDisplayPanels[i].sizeDelta.x, tagDisplayPanels[i].sizeDelta.y * playerTagManager.tagGroups[i].scaleInPanel);
             tagDisplayImg[i] = tagDisplayPanels[i].GetComponent<UnityEngine.UI.Image>();
             tagDisplayTxt[i] = tagDisplayPanels[i].GetComponentInChildren<TMPro.TMP_Text>();
+            tagDisplayImg[i].preserveAspect = true;
+            tagDisplayImg[i].type = UnityEngine.UI.Image.Type.Simple;
             tagDisplayPanels[i].gameObject.SetActive(false);
         }
 
@@ -188,6 +190,7 @@ public class PlayerTagData : UdonSharpBehaviour
                         {
                             tagDisplayImg[i].sprite = groupImage == null ? playerTagManager.tagFallbackImage : groupImage;
                             tagDisplayImg[i].preserveAspect = groupImage != null;
+                            tagDisplayImg[i].type = UnityEngine.UI.Image.Type.Simple;
                             tagDisplayImg[i].color = Color.white;
                         }
                     }
@@ -196,6 +199,7 @@ public class PlayerTagData : UdonSharpBehaviour
                         if (tagDisplayImg[i] != null)
                         {
                             tagDisplayImg[i].color = playerTagManager.tagGroups[i].GetColor(tagGroupStates[i]);
+                            tagDisplayImg[i].type = UnityEngine.UI.Image.Type.Sliced;
                             tagDisplayImg[i].preserveAspect = false;
                         }
                     }
@@ -233,7 +237,7 @@ public class PlayerTagData : UdonSharpBehaviour
     }
 
     // Updates every frame. Use sparingly for billboarding.
-    // To-do: remove this method and replace with VRCBillboard when that feature is released.
+    // VRCBillboard is insufficient due to not repositioning.
     public override void PostLateUpdate()
     {
         base.PostLateUpdate();
