@@ -1,2 +1,2 @@
-"What is the 4th zone in the original Sonic the Hedgehog game?^Labyrinth^Spring Yard^Casino Night^Green Hills
-What is the author's name?^MintyMimix^Spectremint^MontyMimix^MintyMilmix"
+Games^What is the 4th zone in the original Sonic the Hedgehog game?^Labyrinth^Spring Yard^Casino Night^Green Hills
+Author^What is the author's name?^MintyMimix^Spectremint^MontyMimix^MintyMilmix
