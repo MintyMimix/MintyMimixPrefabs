@@ -242,6 +242,7 @@ public class TriviaManager : UdonSharpBehaviour
             TxtQuestion.text = "(All questions answered; resetting list...)";
             _questionsAnswered.Clear();
             if (_questionID >= 0) { _questionsAnswered.Add(_questionID); }
+            revealAnswer = true;
             SendCustomEventDelayedSeconds(nameof(OnPushNext), 1.0f);
             return;
         }
@@ -304,6 +305,14 @@ public class TriviaManager : UdonSharpBehaviour
             questionsByID.Add(innerQuestionList);
             totalQuestionCount++;
         }
+
+        if (totalQuestionCount == 0)
+        {
+            questionsLoaded = false;
+            TxtQuestion.text = "Loaded URL, but no valid questions were found.\nCheck that the URL points to a raw text file.";
+            return;
+        }
+
         UnityEngine.Debug.Log($"[TriviaManager] Successfully loaded question pool with {questionsByCategory.Count} categories and {totalQuestionCount} questions.");
 
         // Now fill the categories.

@@ -1,2 +1,5 @@
-Games^What is the 4th zone in the original Sonic the Hedgehog game?^Labyrinth^Spring Yard^Casino Night^Green Hills
+Games^What is the 4th zone in the original Sonic the Hedgehog game?^Labyrinth^Spring Yard^Casino Night^Green Hill
+Games^What is the 1st zone in the original Sonic the Hedgehog game?^Green Hill^Labyrinth^Spring Yard^Casino Night
+Games^What City of Heroes?^An MMORPG^Your Mom^Your Dad^A Really Good TV Show
 Author^What is the author's name?^MintyMimix^Spectremint^MontyMimix^MintyMilmix
+Author^What is the author's friends' name?^Spectremint^MintyMimiix^Spectramint^MintyMilmix
