@@ -1,11 +1,10 @@
 ﻿
 using System;
-using System.Collections.Generic;
-using System.Text;
 using TMPro;
 using UdonSharp;
 using UnityEngine;
 using UnityEngine.UI;
+using VRC.SDK3.Components;
 using VRC.SDK3.Data;
 using VRC.SDK3.StringLoading;
 using VRC.SDK3.UdonNetworkCalling;
@@ -15,12 +14,21 @@ using VRC.Udon;
 [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
 public class TriviaManager : UdonSharpBehaviour
 {
+
+    [Header("Configurables")]
     [SerializeField] private VRCUrl QuestionsURL;
+    [SerializeField] private Color colorRevealAnswer = Color.red;
+    [SerializeField] private Color colorNextQuestion = Color.green;
+    [Header("References")]
     [SerializeField] private TMP_Text TxtQuestion;
+    [SerializeField] private Transform[] PanelParents;
     [SerializeField] private Transform[] PanelAnswers;
     private TMP_Text[] TxtAnswers;
     [SerializeField] private Toggle ToggleTemplateCategory;
     [SerializeField] private Toggle ToggleRepeats;
+    [SerializeField] private Button ButtonNext;
+    [SerializeField] private Button ButtonRefresh;
+    [SerializeField] private Image ImageNext;
 
     [UdonSynced] private double networkShuffleSeed = 0;
     private double _networkShuffleSeed = 0;
@@ -42,15 +50,19 @@ public class TriviaManager : UdonSharpBehaviour
     // key = category name, value = DataList(Question), and Question = DataList(), where index 0 is question, index 1 is correct answer, 2+ are wrong answers))
 
     private VRCPlayerApi owner;
+    private bool localIsJoining = true;
     private bool questionsLoaded = false;
     private int totalQuestionCount = 0;
     private int questionLoadAttempts = 0;
-    private const int QUESTION_MAX_LOAD_ATTEMPTS = 5;
+    private const int QUESTION_MAX_LOAD_ATTEMPTS = 4;
 
     private Toggle[] ToggleCategories = new Toggle[0];
+    private Transform ImageArrowRefresh;
+    private VRCTweenHandle _refreshingArrowSpin;
 
     private void Start()
     {
+        localIsJoining = true;
         owner = Networking.GetOwner(gameObject);
         questionsLoaded = false;
         ToggleTemplateCategory.gameObject.SetActive(false);
@@ -59,6 +71,9 @@ public class TriviaManager : UdonSharpBehaviour
         {
             TxtAnswers[i] = PanelAnswers[i].GetComponentInChildren<TMP_Text>(true);
         }
+        ImageArrowRefresh = ButtonRefresh.transform.GetChild(0).GetChild(0).GetChild(0);
+        _refreshingArrowSpin = ImageArrowRefresh.TweenLocalRotation(new Vector3(0, 0, 180f), 1.0f, VRCTweenEase.Linear).SetLoops(-1, VRCTweenLoopType.Incremental).Pause();
+        ImageNext.color = _revealAnswer ? colorNextQuestion : colorRevealAnswer;
         OnPushRefresh();
     }
 
@@ -92,20 +107,31 @@ public class TriviaManager : UdonSharpBehaviour
             _questionID = questionID;
             _networkShuffleSeed = networkShuffleSeed;
             if (questionsLoaded) { LoadQuestionLocal(); }
+            ButtonNext.interactable = true;
         }
         // Refresh answer state
         if (revealAnswer != _revealAnswer)
         {
-            DataList answerList = GetAnswersFromQuestion(_questionID);
-            int answerCnt = answerList.Count;
-            string answerStr = answerList[0].String;
-            for (int i = 0; i < PanelAnswers.Length; i++)
+            _revealAnswer = revealAnswer;
+            if (revealAnswer)
             {
-                // Enable/disable panels according to number of answers.
-                if (i >= answerCnt || answerList[i].Error != DataError.None) { PanelAnswers[i].gameObject.SetActive(false); continue; }
-                bool isAnswer = answerStr.Equals(TxtAnswers[i].text);
-                if (PanelAnswers[i].gameObject.activeSelf != isAnswer) { PanelAnswers[i].gameObject.SetActive(isAnswer); }
+                DataList answerList = GetAnswersFromQuestion(_questionID);
+                if (Utilities.IsValid(answerList))
+                {
+                    int answerCnt = answerList.Count;
+                    string answerStr = answerList[0].String;
+                    for (int i = 0; i < PanelAnswers.Length; i++)
+                    {
+                        // Enable/disable panels according to number of answers.
+                        if (i >= answerCnt || answerList[i].Error != DataError.None) { PanelAnswers[i].gameObject.SetActive(false); continue; }
+                        bool isAnswer = answerStr.Equals(TxtAnswers[i].text);
+                        if (PanelAnswers[i].gameObject.activeSelf != isAnswer) { PanelAnswers[i].gameObject.SetActive(isAnswer); }
+                    }
+                }
             }
+            CheckPanelParents();
+            ButtonNext.interactable = true;
+            ImageNext.color = _revealAnswer ? colorNextQuestion : colorRevealAnswer;
         }
 
         _loadingNetworkedValues = false;
@@ -128,7 +154,7 @@ public class TriviaManager : UdonSharpBehaviour
             if (!PanelAnswers[i].gameObject.activeSelf) { PanelAnswers[i].gameObject.SetActive(true); }
             TxtAnswers[i].text = answerList[i].String;
         }
-
+        CheckPanelParents();
         // While only the owner cares about the answered questions list, we'll store it locally as well in case they disconnect and owner transfers
         if (!_questionsAnswered.Contains(_questionID)) { _questionsAnswered.Add(_questionID); }
     }
@@ -207,6 +233,7 @@ public class TriviaManager : UdonSharpBehaviour
     {
         if (owner == null || !owner.isLocal || !questionsLoaded) { return; }
         revealAnswer = !revealAnswer;
+        ButtonNext.interactable = false;
         if (!revealAnswer) { PickRandomQuestion(); }
         SendOwnerSerializationRequest(-1, _allowRepeatQuestions, _selectedCategories);
     }
@@ -218,7 +245,7 @@ public class TriviaManager : UdonSharpBehaviour
         {
             if (selectedCategories[i] && i < categoryCount) { validCategories.Add(i); }
         }
-        if (validCategories.Count == 0) { return; }
+        if (validCategories.Count == 0) { TxtQuestion.text = "No categories selected!"; ButtonNext.interactable = true; return; }
 
         int questionPickedID = -1;
         while (validCategories.Count > 0 && questionPickedID < 0)
@@ -240,6 +267,7 @@ public class TriviaManager : UdonSharpBehaviour
         if (questionPickedID < 0)
         {
             TxtQuestion.text = "(All questions answered; resetting list...)";
+            ButtonNext.interactable = false;
             _questionsAnswered.Clear();
             if (_questionID >= 0) { _questionsAnswered.Add(_questionID); }
             revealAnswer = true;
@@ -250,10 +278,57 @@ public class TriviaManager : UdonSharpBehaviour
         SendOwnerSerializationRequest(questionPickedID, _allowRepeatQuestions, _selectedCategories);
     }
 
+    private void CreateCategories()
+    {
+        if (!Utilities.IsValid(questionsByCategory)) { return; }
+        int categoryCount = questionsByCategory.Count;
+        // Destroy everything in the old list before creating a new one.
+        if (Utilities.IsValid(ToggleCategories) && ToggleCategories.Length > 0)
+        {
+            for (int i = 0; i < ToggleCategories.Length; i++)
+            {
+                if (!Utilities.IsValid(ToggleCategories[i])) { continue; }
+                Destroy(ToggleCategories[i].gameObject);
+            }
+        }
+
+        _loadingNetworkedValues = true;
+
+        ToggleCategories = new Toggle[categoryCount];
+        for (int i = 0; i < categoryCount; i++)
+        {
+            GameObject newToggleObj = Instantiate(ToggleTemplateCategory.gameObject, ToggleTemplateCategory.transform.parent);
+            if (!Utilities.IsValid(newToggleObj)) { continue; }
+            ToggleCategories[i] = newToggleObj.GetComponent<Toggle>();
+            newToggleObj.SetActive(true);
+            if (Utilities.IsValid(_selectedCategories) && i < _selectedCategories.Length) { ToggleCategories[i].isOn = _selectedCategories[i]; }
+            if (Utilities.IsValid(categoryNames) && i < categoryNames.Count && categoryNames[i].Error == DataError.None)
+            {
+                ToggleCategories[i].GetComponentInChildren<TMP_Text>(true).text = categoryNames[i].String;
+            }
+        }
+
+        _loadingNetworkedValues = false;
+
+        if (!Utilities.IsValid(owner)) { owner = Networking.GetOwner(gameObject); }
+        if (owner.isLocal && selectedCategories.Length != categoryCount)
+        {
+            selectedCategories = new bool[categoryCount];
+            for (int i = 0; i < categoryCount; i++)
+            {
+                selectedCategories[i] = true;
+            }
+            SendOwnerSerializationRequest(-1, allowRepeatQuestions, selectedCategories);
+        }
+    }
+
+
     // Local-only
     public void OnPushRefresh()
     {
         questionLoadAttempts = 0;
+        ButtonRefresh.interactable = false;
+        _refreshingArrowSpin.Restart();
         LoadQuestionsFromURL();
     }
 
@@ -306,6 +381,10 @@ public class TriviaManager : UdonSharpBehaviour
             totalQuestionCount++;
         }
 
+        _refreshingArrowSpin.Restart();
+        _refreshingArrowSpin.Pause();
+        ButtonRefresh.interactable = true;
+
         if (totalQuestionCount == 0)
         {
             questionsLoaded = false;
@@ -319,50 +398,9 @@ public class TriviaManager : UdonSharpBehaviour
         questionsLoaded = true;
         CreateCategories();
         LoadQuestionLocal();
-    }
-
-    private void CreateCategories()
-    {
-        if (!Utilities.IsValid(questionsByCategory)) { return; }
-        int categoryCount = questionsByCategory.Count;
-        // Destroy everything in the old list before creating a new one.
-        if (Utilities.IsValid(ToggleCategories) && ToggleCategories.Length > 0) 
-        {
-            for (int i = 0; i < ToggleCategories.Length; i++)
-            {
-                if (!Utilities.IsValid(ToggleCategories[i])) { continue; }
-                Destroy(ToggleCategories[i].gameObject);
-            }
-        }
-
-        _loadingNetworkedValues = true;
-
-        ToggleCategories = new Toggle[categoryCount];
-        for (int i = 0; i < categoryCount; i++)
-        {
-            GameObject newToggleObj = Instantiate(ToggleTemplateCategory.gameObject, ToggleTemplateCategory.transform.parent);
-            if (!Utilities.IsValid(newToggleObj)) { continue; }
-            ToggleCategories[i] = newToggleObj.GetComponent<Toggle>();
-            newToggleObj.SetActive(true);
-            if (Utilities.IsValid(_selectedCategories) && i < _selectedCategories.Length) { ToggleCategories[i].isOn = _selectedCategories[i]; }
-            if (Utilities.IsValid(categoryNames) && i < categoryNames.Count && categoryNames[i].Error == DataError.None)
-            {
-                ToggleCategories[i].GetComponentInChildren<TMP_Text>(true).text = categoryNames[i].String;
-            }
-        }
-
-        _loadingNetworkedValues = false;
-
-        if (!Utilities.IsValid(owner)) { owner = Networking.GetOwner(gameObject); }
-        if (owner.isLocal && selectedCategories.Length != categoryCount)
-        {
-            selectedCategories = new bool[categoryCount];
-            for (int i = 0; i < categoryCount; i++)
-            {
-                selectedCategories[i] = true;
-            }
-            SendOwnerSerializationRequest(-1, allowRepeatQuestions, selectedCategories);
-        }
+        if (owner == null) { owner = Networking.GetOwner(gameObject); }
+        if (localIsJoining && !owner.isLocal) { SendCustomNetworkEvent(VRC.Udon.Common.Interfaces.NetworkEventTarget.Owner, nameof(OnNewPlayerJoined)); }
+        localIsJoining = false;
     }
 
     public override void OnStringLoadError(IVRCStringDownload result)
@@ -375,8 +413,11 @@ public class TriviaManager : UdonSharpBehaviour
         }
         else
         {
+            _refreshingArrowSpin.Restart();
+            _refreshingArrowSpin.Pause();
+            ButtonRefresh.interactable = true;
             questionsLoaded = false;
-            TxtQuestion.text = $"Failed to load questions after {questionLoadAttempts} retries.<sub>({result.ErrorCode} - {result.Error})</sub>";
+            TxtQuestion.text = $"Failed to load questions after {questionLoadAttempts} retries.\n<sub>({result.ErrorCode} - {result.Error})</sub>";
         }
     }
     private void ShuffleTokens(DataList list, double seed)
@@ -390,6 +431,27 @@ public class TriviaManager : UdonSharpBehaviour
             list[i] = list[randomIndex];
             list[randomIndex] = temp;
         }
+    }
+
+    private void CheckPanelParents()
+    {
+        for (int i = 0; i < PanelParents.Length; i++)
+        {
+            if (!Utilities.IsValid(PanelParents[i])) { continue; }
+            bool shouldBeActive = false;
+            for (int j = 0; j < PanelParents[i].childCount; j++)
+            {
+                if (Utilities.IsValid(PanelParents[i].GetChild(j)) && PanelParents[i].GetChild(j).gameObject.activeSelf) { shouldBeActive = true; break; }
+            }
+            if (PanelParents[i].gameObject.activeSelf != shouldBeActive) { PanelParents[i].gameObject.SetActive(shouldBeActive); }
+        }
+    }
+
+    [NetworkCallable]
+    public void OnNewPlayerJoined()
+    {
+        if (owner == null || !owner.isLocal) { return; }
+        SendOwnerSerializationRequest(_questionID, _allowRepeatQuestions, _selectedCategories);
     }
 
 }
