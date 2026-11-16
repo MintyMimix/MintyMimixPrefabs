@@ -1,13 +1,100 @@
-Games^What is the 4th zone in the original Sonic the Hedgehog game?^Labyrinth^Spring Yard^Casino Night^Green Hills
-Crimson^Is Spectremint a bottom?^He's a switch, but has bottom energy^Yes, but he wishes he wasn't^Very Yes^He's a Nintendo Switch
-Games^Chess Grandmaster Hans Niemann was accused of cheating by another Grandmaster of foul play. How was it proposed he cheated?^Remote-controlled vibrating anal beads^Signals from a nearby spectator^Having a preset list of optimal moves in written braille in his pocket^A small, difficult-to-detect listening device
-VRChat^What year was VRChat released?^2014^2020^2016^2018
+"VRChat^What year was VRChat released?^2014^2020^2016^2018
 VRChat^Before Physbones, what did people use to animate hair and accessories?^Dynamic Bones^Bonelab^Magica Cloth^Dynamite Boners
 VRChat^Which game world has the most visits total?^Murder 4^Prison Escape^Probability Labs^Terrors of Nowhere
-Games^Who is the main antagonist of Ori and the Blind Forest?^Kuro^Nibel^Gumo^King Rammer XII
-Games^In the Half-Life series, how long did it take for Earth to be subjugated by The Combine?^7 Hours^7 Years^7 Days^7 Minutes
 VRChat^Which company did Valve cooperate with in the creation of the Vive?^HTC^Oculus^Apple^Meta
-History^Which country gifted the Statue of Liberty to the United States?^France^Spain^England^Germany
-Games^Which Super Smash Bros game featured Luigi as a playable character?^Super Smash Bros (N64)^Super Smash Bros Melee^Super Smash Bros Brawl^Super Smash Flash
-Games^Roller Coaster Tycoon was programmed primarily in what language?^x86 Assembly^C^C#^ALGOL
-Test5^Test Question^Tru^FALSE
+VRChat^Prior to mainstream fullbody tracking (FBT) solutions, what did people use?^Kinect^EyeToy^iPhone Camera^HTC Base Station
+VRChat^Which of the following was NOT historically a real rank?^Untrusted^Nuisance^Veteran^Legendary
+VRChat^When did VRC+ release?^2020^2018^2019^2022
+VRChat^What was the first community-made world to hit 10 million visitors?^The Great Pug^The Black Cat^Murder 4^Drinking Night
+VRChat^What was the original avatar polygon limit?^20k^70k^50k^10k
+VRChat^True or False: FLOW, the band most commonly known for the Code Geass opening theme, hosted a paid, VRChat-exclusive concert.^TRUE^FALSE
+VRChat^True or False: RoosterTeeth, the company known for shows such as RWBY, Red vs. Blue, and Achievement Hunter, held an exclusive, paid VRChat event.^FALSE^TRUE
+VRChat^True or False: Nameplates could be decorated prior to 2026.^TRUE^FALSE
+VRChat^True or False: Furality Summer 2027's theme is announced to be beach-themed.^FALSE^TRUE
+Bump n' Bash^When was Bump n' Bash [Classic] released?^2026-01-01^2026-07-27^2026-06-19^2025-07-02
+Bump n' Bash^What was the Plasma Cannon called prior to its rework?^Superlaser^Laser^Plasma Blast^Sniper Beam
+Bump n' Bash^What stage was completely removed in between Bump n' Bash: Classic and Bump n' Bash: Round 2?^Deep Blues^Casted Dream^Bitcrush Bash^Starlight Skyway
+Bump n' Bash^How many versions of Starlight Skyway have been released over the course of Bump n' Bash's history?^4^2^3^5
+Bump n' Bash^What was Bump n' Bash originally going to be titled?^Thrash Bash^Smash n' Bash^Bash Master^Bump n' Brawl
+Bump n' Bash^Which is the oldest unmodified stage?^Synth Street^Bitcrush Bash^Brawl Burned^Stone's Throw
+Bump n' Bash^Which stage was originally only meant for bug-testing but was later reworked into a full-time stage?^Bitcrush Bash^Hallow's Thrash^Casted Dream^Facing Blues
+Bump n' Bash^What inspired the stage Borrowed Space?^Rats from Counter-Strike 1.6^Grounded^Alice in Wonderland^ToyHouse from Garry's Mod
+Bump n' Bash^What is the stage name Borrowed Space specifically attempting to reference?^The Borrowers (1952)^On Borrowed Time (1939)^Bill's Ability (Borrowed Time) in Dead by Daylight (2016)^Borrowed Hearts (1997)
+Bump n' Bash^Who created the stage Sunderdome?^MintyMimix^Spectremint^SaberL^Ferð
+Bump n' Bash^Who created the stage Casted Dream?^Spectremint^MintyMimix^TheMitzez^LixianPrime
+Bump n' Bash^Who created the stage Brawl Burned?^TheMitzez^MintyMimix^Ecchi Skecchi^LixianPrime
+Bump n' Bash^Who created the stage Hallow's Thrash?^TheMitzez^Spectremint^Ecchi Skecchi^LixianPrime
+Bump n' Bash^Who created the stage Tree Top Molly Wop?^SaberL^Ecchi Skecchi^MintyMimix^Spectremint
+Bump n' Bash^Who created the stage Punch Out O'Clock?^Ecchi Skecchi^MintyMimix^SaberL^TheMitzez
+Bump n' Bash^Who created the stage Ordovidican?^Ferð^Spectremint^MintyMimix^TheMitzez
+Bump n' Bash^What was the original theme for Casted Dream?^A Lighthouse^Giant Video Game Console^Bouncing atop of fluffy clouds^Idyllic Fishing Shack
+Bump n' Bash^Who was the original voice actor for Bump n' Bash post-release?^LixianPrime^BombardToo^MintyMimix^Feldarin
+Bump n' Bash^What is the rarest item in the game?^Refresh^Boss Glove^Rage^Leech
+Bump n' Bash^Which weapon has the strongest possible power in the game?^Plasma Cannon^Seeker Mine^Boss Glove^Mega Glove
+Bump n' Bash^Which of the following weapons has the largest hurtbox size?^Jousting Glove^Mega Glove^Suction Glove^Hyper Glove
+Bump n' Bash^If you knock out someone with Mighty Quake, which icon is used in the killfeed?^Bomb^The Mighty Quake Powerup Icon^Boss Glove^Mega Glove
+Bump n' Bash^How do you earn the 'Boundary Breaker' achievement?^Get knocked out past a stage's death plane^Report a bug that gets fixed in a later patch^Successfully land on the ground after taking over 300% damage^Get 100 KOs by smashing others through glass on specific stages
+Bump n' Bash^Which of the following gamemodes was NOT in Bump n' Bash: Classic?^Conversion^Fitting In^King of the Hill^Infection
+Bump n' Bash^True or False: There is a hidden powerup inside the drawer beneath the TV on Borrowed Space.^TRUE^FALSE
+Bump n' Bash^True or False: You can enable Ordovidican's anti-gravity feature on any stage.^TRUE^FALSE
+Bump n' Bash^True or False: Sunderdome was originally conceived as a wrestler-style cage match.^TRUE^FALSE
+Bump n' Bash^True or False: Starlight Skyway was originally themed around an intergalactic amusement park.^FALSE^TRUE
+Bump n' Bash^True or False: Stone's Throw was originally themed around a large, maze-like temple.^FALSE^TRUE
+Bump n' Bash^True or False: The Easy Mode version of Hallow's Thrash was originally going to have multiple new platforms.^FALSE^TRUE
+Bump n' Bash^True or False: There is a hidden button on Ordovidican that will let you preview the Anniversary Event.^FALSE^TRUE
+Bump n' Bash^True or False: Bump n' Bash originally released with 10 stages.^TRUE^FALSE
+Bump n' Bash^True or False: Bump n' Bash: Round 2 originally released with 18 stages.^FALSE^TRUE
+Bump n' Bash^True or False: The world's lead developer, MintyMimix, goes by they/them pronouns.^TRUE^FALSE
+Bump n' Bash^True or False: The training dummies were originally low-poly versions of the world's lead developer.^FALSE^TRUE
+Bump n' Bash^True or False: Target Trial was originally a Summer-exclusive event before being turned into a side option in a future update.^TRUE^FALSE
+Bump n' Bash^Which of the following holiday events allows you to fight an NPC boss?^Anniversary^Winter^Spring^Autumn
+Bump n' Bash^Which of the following items cannot spawn in Infection?^Size Up^Plasma Cannon^High Gravity^Multi-Jump
+Bump n' Bash^True or False: You can ring the doorbells on Marina Arena for an achievement regardless of if the Autumn Event is active.^TRUE^FALSE
+Bump n' Bash^True or False: Ringing every single doorbell on Marina Arena in single match during the Autumn Event will grant Size Up 3x.^TRUE^FALSE
+Bump n' Bash^Which of the following stages was NOT in Bump n' Bash: Classic?^Facing Blues^Stone's Throw^Borrowed Space^Hallow's Thrash
+Bump n' Bash^Which of the following stages was NOT in the original release of Bump n' Bash: Round 2?^Atom's Mash^Marina Arena^Sunderdome^Punch Out O'Clock
+Bump n' Bash^Which of the following stages were the lobby posters plucked from?^Sunderdome^Borrowed Space^Synth Street^The Infinitrum
+Bump n' Bash^True or False: There is a hidden button inside one of the ovens in the spectator bar.^TRUE^FALSE
+Bump n' Bash^True or False: The maximum size limit for any given stage is 25m.^FALSE^TRUE
+Bump n' Bash^True or False: The player movement speed on Bitcrush Bash is same on both Normal and Easy Mode. ^FALSE^TRUE
+Bump n' Bash^Which of the following features was originally a bug?^Rocket Jumping on Death Planes^Dashing^Seeker Mines stopping in place upon contact^Zero Gravity on Ordovidican
+Bump n' Bash^True or False: This trivia module was specifically designed for Bump n' Bash.^FALSE^TRUE
+Bump n' Bash^True or False: Bump n' Bash was originally designed to be PC-only.^FALSE^TRUE
+Bump n' Bash^Which of the following platforms did NOT exist upon Bump n' Bash's initial release?^iOS^Quest^Android Mobile^Steam
+Bump n' Bash^Which stage has the highest damaging hazard that does NOT instantly knock a player out?^Punch Out O'Clock^Brawl Burned^Atom's Mash^Borrowed Space
+Bump n' Bash^How many matches must someone play in order to reach the highest star rating on the scoreboard?^500^200^100^1000
+Bump n' Bash^How many matches must someone play in order to no longer be considered a 'Sprout' by the game?^25^50^100^10
+Bump n' Bash^What was the original name for Grand Slam during its concept phases?^David vs Goliath^Grand Boss Battle^VIP^Protect The Boss
+Bump n' Bash^True or False: The internal names for damage types are all onomatopeia, such as 'kapow' and 'yoink'.^TRUE^FALSE
+Bump n' Bash^True or False: The internal name for Starlight Skyway, Highway in the Sky, a reference to Sonic the Hedgehog.^TRUE^FALSE
+Bump n' Bash^True or False: The internal name for 64Fort, Blockfort, is a reference to Team Fortress Classic.^FALSE^TRUE
+Bump n' Bash^True or False: The song names displayed on Casted Dream's props are all parodies of real-world songs and bands.^TRUE^FALSE
+Bump n' Bash^True or False: Many of the SFX cues used in this game are nods to the MMORPG City of Heroes.^TRUE^FALSE
+Bump n' Bash^True or False: Many of the SFX cues used in this game are nods to the MMORPG Final Fantasy XI.^FALSE^TRUE
+Bump n' Bash^True or False: Many of the SFX cues used in this game are nods to the MMORPG Champions Online.^FALSE^TRUE
+Bump n' Bash^True or False: There is an achievement and exclusive skin for filling out the survey near the credits screen.^TRUE^FALSE
+Bump n' Bash^True or False: There is a hidden, exclusive skin unlocked for earning every non-hidden achievement in the game.^TRUE^FALSE
+Bump n' Bash^What was the original theme of Bump n' Bash conceptualized to be?^A black-and-white rubberhose cartoon^A cyberpunk-style simulation^A loud, bright boxing arena^A whimsical, chaotic circus show
+Bump n' Bash^What is the final weapon of Metamorphosis by default?^Punching Glove^Item Launcher^Hyper Glove^Seeker Mine
+Bump n' Bash^What is the final weapon of Metamorphosis after manual configuration?^Item Launcher^Punching Glove^Hyper Glove^Seeker Mine
+Bump n' Bash^True or False: There is a hidden achievement for burning the fish inside the oven in the spectator area.^FALSE^TRUE
+Bump n' Bash^What is the public avatar that can be worn to earn the 'Fashion Statement' achievement called?^Mini-Byte Knight^Mega-Byte Knight^Bump n' Bash Bot^Bot n' Bash
+Bump n' Bash^True or False: The Mini-Byte Knight avatar will automatically change colors to match your team color.^TRUE^FALSE
+Bump n' Bash^True or False: Bump n' Bash was featured at VKET Summer 2026.^TRUE^FALSE
+Bump n' Bash^True or False: Bump n' Bash was featured at VKET Winter 2026.^FALSE^TRUE
+Bump n' Bash^True or False: The monorail tunnels in the lobby lead to a secret area.^FALSE^TRUE
+Bump n' Bash^True or False: The Developer Commentary unlocks after playing 100 rounds.^TRUE^FALSE
+Bump n' Bash^True or False: The Developer Commentary unlocks after playing 20 rounds.^FALSE^TRUE
+Bump n' Bash^Which of the following stages does NOT feature a hazard?^Deep Blues^Borrowed Space^Starlight Skyway^Atom's Mash
+Bump n' Bash^What is the stage Deep Blues a reference to?^Unreal Tournament^Quake^Instagib^DOOM
+Bump n' Bash^True or False: One of the posters on Borrowed Space features a stage that no longer exists in Bump n' Bash.^TRUE^FALSE
+Bump n' Bash^True or False: One of the posters on Borrowed Space has a hidden cow.^FALSE^TRUE
+Bump n' Bash^True or False: There is a cassette tape on the couch in Borrowed Space.^FALSE^TRUE
+Bump n' Bash^How many calories does the 'Diet Soda' on Borrowed Space purportedly have?^too much^0^200^a lot
+Bump n' Bash^How many grams of carbohydrates does the 'Diet Soda' on Borrowed Space purportedly have?^39 yottagrams^39 kilograms^39 grams^39 megagrams
+Bump n' Bash^What does nickname does the can of 'Diet Soda' on Borrowed Space give to the reader of its label?^Goober^Nerd^Avid Reader^Pop Pro
+Bump n' Bash^True or False: One of the cans on Borrowed Space contains hot sauce.^TRUE^FALSE
+Bump n' Bash^True or False: One of the cans on Borrowed Space contains vinegar.^FALSE^TRUE
+Bump n' Bash^True or False: Prior to specter mode, spectators used to be able to stand in audience bleachers on Sunderdome.^FALSE^TRUE
+Bump n' Bash^True or False: The Infinitrum was the final stage designed for Bump n' Bash.^TRUE^FALSE
+Bump n' Bash^Which of the following announcer options is NOT by a professional voice actor?^MintyMimix^BombardToo^LixianPrime^Feldarin"
