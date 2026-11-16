@@ -1,5 +1,13 @@
-Games^What is the 4th zone in the original Sonic the Hedgehog game?^Labyrinth^Spring Yard^Casino Night^Green Hill
-Games^What is the 1st zone in the original Sonic the Hedgehog game?^Green Hill^Labyrinth^Spring Yard^Casino Night
-Games^What City of Heroes?^An MMORPG^Your Mom^Your Dad^A Really Good TV Show
-Author^What is the author's name?^MintyMimix^Spectremint^MontyMimix^MintyMilmix
-Author^What is the author's friends' name?^Spectremint^MintyMimiix^Spectramint^MintyMilmix
+Games^What is the 4th zone in the original Sonic the Hedgehog game?^Labyrinth^Spring Yard^Casino Night^Green Hills
+Crimson^Is Spectremint a bottom?^He's a switch, but has bottom energy^Yes, but he wishes he wasn't^Very Yes^He's a Nintendo Switch
+Games^Chess Grandmaster Hans Niemann was accused of cheating by another Grandmaster of foul play. How was it proposed he cheated?^Remote-controlled vibrating anal beads^Signals from a nearby spectator^Having a preset list of optimal moves in written braille in his pocket^A small, difficult-to-detect listening device
+VRChat^What year was VRChat released?^2014^2020^2016^2018
+VRChat^Before Physbones, what did people use to animate hair and accessories?^Dynamic Bones^Bonelab^Magica Cloth^Dynamite Boners
+VRChat^Which game world has the most visits total?^Murder 4^Prison Escape^Probability Labs^Terrors of Nowhere
+Games^Who is the main antagonist of Ori and the Blind Forest?^Kuro^Nibel^Gumo^King Rammer XII
+Games^In the Half-Life series, how long did it take for Earth to be subjugated by The Combine?^7 Hours^7 Years^7 Days^7 Minutes
+VRChat^Which company did Valve cooperate with in the creation of the Vive?^HTC^Oculus^Apple^Meta
+History^Which country gifted the Statue of Liberty to the United States?^France^Spain^England^Germany
+Games^Which Super Smash Bros game featured Luigi as a playable character?^Super Smash Bros (N64)^Super Smash Bros Melee^Super Smash Bros Brawl^Super Smash Flash
+Games^Roller Coaster Tycoon was programmed primarily in what language?^x86 Assembly^C^C#^ALGOL
+Test5^Test Question^Tru^FALSE
