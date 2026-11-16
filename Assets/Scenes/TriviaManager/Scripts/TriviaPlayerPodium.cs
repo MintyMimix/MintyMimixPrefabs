@@ -23,6 +23,9 @@ public class TriviaPlayerPodium : UdonSharpBehaviour
     [SerializeField] internal Animator podiumAnimator;
     [SerializeField] private Slider sliderPodiumStairs;
     [SerializeField] private Transform podiumStairs;
+    [SerializeField] private ParticleSystem particleWrongAnswer;
+    [SerializeField] private ParticleSystem particleCorrectAnswer;
+    [SerializeField] internal RenderTexture photoRT;
 
     // Which player currently claimed this podium?
     [UdonSynced] private int registeredPlayer = -1;
@@ -31,7 +34,6 @@ public class TriviaPlayerPodium : UdonSharpBehaviour
     internal int _selectedAnswer = -1;
     private VRCPlayerApi _cachedRegisteredPlayer = null;
 
-    internal RenderTexture photoRT;
     internal VRCTweenHandle[] tweenInteractAnswer = new VRCTweenHandle[0];
 
     private const string CAPTION_ENTER = "Register";
@@ -52,7 +54,8 @@ public class TriviaPlayerPodium : UdonSharpBehaviour
         podiumAnimator.SetInteger("answerCnt", 0);
         tweenInteractAnswer = new VRCTweenHandle[buttonAnswer.Length];
         for (int i = 0; i < buttonAnswer.Length; i++) 
-        { 
+        {
+            buttonAnswer[i].DisableInteractive = true;
             renderersButtonAnswer[i].materials[1].DisableKeyword("_EMISSION");
             tweenInteractAnswer[i] = buttonAnswer[i].transform.TweenLocalPosition(INTERACTABLE_TWEEN_LOCALPOS, 1f, VRCTweenEase.Linear).Pause();
         }  
@@ -60,10 +63,13 @@ public class TriviaPlayerPodium : UdonSharpBehaviour
         triviaManager.RegisterPodium(this);
         for (int b = 0; b < buttonClaim.Length; b++) 
         { 
-            buttonClaim[b].gameObject.SetActive(b == 0); 
+            buttonClaim[b].gameObject.SetActive(registeredPlayer < 0 && b == 0); 
             buttonClaim[b].InteractionText = CAPTION_ENTER; 
         }
         TxtNameplate.text = "";
+        particleWrongAnswer.gameObject.SetActive(false);
+        particleCorrectAnswer.gameObject.SetActive(false);
+        photoCamera.gameObject.SetActive(false);
         OnSliderStairChanged();
     }
 
@@ -80,7 +86,7 @@ public class TriviaPlayerPodium : UdonSharpBehaviour
                 TxtNameplate.text = "";
                 for (int b = 0; b < buttonClaim.Length; b++)
                 {
-                    buttonClaim[b].gameObject.SetActive(b == 0);
+                    buttonClaim[b].gameObject.SetActive(b == 0 && !triviaManager._localIsPlaying);
                     buttonClaim[b].InteractionText = CAPTION_ENTER;
                 }
                 for (int i = 0; i < buttonAnswer.Length; i++) { buttonAnswer[i].DisableInteractive = true; }
@@ -90,13 +96,13 @@ public class TriviaPlayerPodium : UdonSharpBehaviour
                 _cachedRegisteredPlayer = VRCPlayerApi.GetPlayerById(registeredPlayer);
                 TxtNameplate.text = Utilities.IsValid(_cachedRegisteredPlayer) ? _cachedRegisteredPlayer.displayName : null;
                 
-                if (_cachedRegisteredPlayer.isLocal)
+                if (Utilities.IsValid(_cachedRegisteredPlayer) && _cachedRegisteredPlayer.isLocal)
                 {
                     triviaManager._localIsPlaying = true;
                     triviaManager.PlayAudioAtPoint(transform.position, TriviaManagerAudioClips.EnterGame);
                     for (int i = 0; i < triviaManager._registeredPodiums.Count; i++)
                     {
-                        if (triviaManager._registeredPodiums[i].Error != DataError.None) { return; }
+                        if (triviaManager._registeredPodiums[i].Error != DataError.None) { continue; }
                         TriviaPlayerPodium podium = (TriviaPlayerPodium)triviaManager._registeredPodiums[i].Reference;
                         for (int b = 0; b < podium.buttonClaim.Length; b++) 
                         { 
@@ -106,19 +112,27 @@ public class TriviaPlayerPodium : UdonSharpBehaviour
 
                     }
                 }
+                else
+                {
+                    for (int b = 0; b < buttonClaim.Length; b++) { buttonClaim[b].gameObject.SetActive(false); }
+                }
                 for (int i = 0; i < buttonAnswer.Length; i++) { buttonAnswer[i].DisableInteractive = !_cachedRegisteredPlayer.isLocal; }
             }
             _registeredPlayer = registeredPlayer;
+            if (_registeredPlayer >= 0) { QueuePhoto(); }
             OnSliderStairChanged();
         }
 
         if (_selectedAnswer != selectedAnswer)
         {
+            bool answerIsVisible = _cachedRegisteredPlayer != null && _cachedRegisteredPlayer.isLocal;
+            answerIsVisible = answerIsVisible || triviaManager._otherPlayersVisible || !triviaManager._localIsPlaying;
             DataList answerList = triviaManager.GetCurrentAnswers();
             int answerCnt = answerList.Count;
             for (int i = 0; i < TxtAnswer.Length; i++)
             {
                 if (selectedAnswer < 0) { TxtAnswer[i].text = "-"; TxtAnswer[i].color = Color.white; }
+                else if (!answerIsVisible) { TxtAnswer[i].text = "?"; TxtAnswer[i].color = Color.white; }
                 else
                 {
                     if (answerCnt == 2)
@@ -135,7 +149,7 @@ public class TriviaPlayerPodium : UdonSharpBehaviour
             triviaManager.SetPodiumPlyCircleParent(this, selectedAnswer);
             for (int i = 0; i < buttonAnswer.Length; i++)
             {
-                if (selectedAnswer == i) { renderersButtonAnswer[i].materials[1].EnableKeyword("_EMISSION"); }
+                if (selectedAnswer == i && answerIsVisible) { renderersButtonAnswer[i].materials[1].EnableKeyword("_EMISSION"); }
                 else { renderersButtonAnswer[i].materials[1].DisableKeyword("_EMISSION"); }
             }
             _selectedAnswer = selectedAnswer;
@@ -153,7 +167,9 @@ public class TriviaPlayerPodium : UdonSharpBehaviour
             Destroy(newRenderTexture);
             return false;
         }
+        if (Utilities.IsValid(photoRT)) { Destroy(photoRT); }
         photoRT = newRenderTexture;
+        photoCamera.enabled = true;
         photoCamera.targetTexture = photoRT;
         return true;
     }
@@ -162,9 +178,12 @@ public class TriviaPlayerPodium : UdonSharpBehaviour
     {
         if (_registeredPlayer < 0 || !Utilities.IsValid(_cachedRegisteredPlayer)) { return; }
         VRCPlayerApi.TrackingData trackingData = _cachedRegisteredPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head);
+        Vector3 headPosition = trackingData.position;
+        Quaternion headRotation = trackingData.rotation;
         photoCamera.gameObject.SetActive(true);
-        photoCamera.transform.SetPositionAndRotation(trackingData.position + (trackingData.rotation * Vector3.forward * 4f), trackingData.rotation * Quaternion.Euler(0, 180, 0));
-        SendCustomEventDelayedSeconds(nameof(SnapPhoto), 0.2f);
+        Vector3 camPos = headPosition + (headRotation * Vector3.forward * (1f * _cachedRegisteredPlayer.GetAvatarEyeHeightAsMeters() / 1.6f));
+        photoCamera.transform.SetPositionAndRotation(camPos, Quaternion.LookRotation(trackingData.position - camPos, Vector3.up));
+        SendCustomEventDelayedSeconds(nameof(SnapPhoto), 0.1f);
     }
 
     public void SnapPhoto()
@@ -180,7 +199,12 @@ public class TriviaPlayerPodium : UdonSharpBehaviour
         if (player.playerId == registeredPlayer) 
         {
             _cachedRegisteredPlayer = null;
-            SetPodiumOwner(-1); 
+            SetPodiumOwner(-1);
+            for (int b = 0; b < buttonClaim.Length; b++)
+            {
+                buttonClaim[b].gameObject.SetActive(b == 0 && !triviaManager._localIsPlaying);
+                buttonClaim[b].InteractionText = CAPTION_ENTER;
+            }
         }
     }
 
@@ -217,13 +241,27 @@ public class TriviaPlayerPodium : UdonSharpBehaviour
         if (!Networking.IsOwner(gameObject)) { return; }
         VRCPlayerApi player = VRCPlayerApi.GetPlayerById(playerId);
         if (!Utilities.IsValid(player)) { return; }
-        SetPodiumOwner(Networking.LocalPlayer.playerId);
+        SetPodiumOwner(playerId);
         Networking.SetOwner(player, gameObject);
     }
 
     public override void OnOwnershipTransferred(VRCPlayerApi player)
     {
-        if (Networking.IsOwner(gameObject) && registeredPlayer >= 0 || registeredPlayer != Networking.LocalPlayer.playerId) { SetPodiumOwner(Networking.LocalPlayer.playerId); }
+        if (!triviaManager._localRequestedPlay)
+        {
+            _cachedRegisteredPlayer = null;
+            SetPodiumOwner(-1);
+            for (int b = 0; b < buttonClaim.Length; b++)
+            {
+                buttonClaim[b].gameObject.SetActive(b == 0 && !triviaManager._localIsPlaying);
+                buttonClaim[b].InteractionText = CAPTION_ENTER;
+            }
+        }
+        else if ((Networking.IsOwner(gameObject) && registeredPlayer >= 0) || registeredPlayer != Networking.LocalPlayer.playerId) 
+        {
+            triviaManager._localRequestedPlay = false;
+            SetPodiumOwner(Networking.LocalPlayer.playerId); 
+        }
     }
 
     private void LocalExitGame()
@@ -235,11 +273,11 @@ public class TriviaPlayerPodium : UdonSharpBehaviour
         SetPodiumOwner(-1);
         for (int i = 0; i < triviaManager._registeredPodiums.Count; i++)
         {
-            if (triviaManager._registeredPodiums[i].Error != DataError.None) { return; }
+            if (triviaManager._registeredPodiums[i].Error != DataError.None) { continue; }
             TriviaPlayerPodium podium = (TriviaPlayerPodium)triviaManager._registeredPodiums[i].Reference;
             for (int b = 0; b < podium.buttonClaim.Length; b++)
             {
-                podium.buttonClaim[b].gameObject.SetActive(b == 0);
+                podium.buttonClaim[b].gameObject.SetActive((podium._registeredPlayer < 0 || podium == this) && !triviaManager._localIsPlaying ? b == 0 : false);
                 podium.buttonClaim[b].InteractionText = CAPTION_ENTER;
             }
         }
@@ -250,6 +288,7 @@ public class TriviaPlayerPodium : UdonSharpBehaviour
         if (_registeredPlayer < 0 || _cachedRegisteredPlayer == null)
         {
             SendPodiumClaimRequest();
+            triviaManager._localRequestedPlay = true;
         }
         else if (_cachedRegisteredPlayer != null && _cachedRegisteredPlayer.isLocal)
         {
@@ -267,21 +306,23 @@ public class TriviaPlayerPodium : UdonSharpBehaviour
         {
             if (Utilities.IsValid(_cachedRegisteredPlayer) && _cachedRegisteredPlayer.isLocal) { triviaManager.PlayAudioAtPoint(transform.position, TriviaManagerAudioClips.AnswerIncorrect); }
         }
-        for (int i = 0; i < TxtAnswer.Length; i++)
+        if (_registeredPlayer >= 0)
         {
-            if (_registeredPlayer >= 0)
+            for (int i = 0; i < TxtAnswer.Length; i++)
             {
+
                 TxtAnswer[i].text = isCorrect ? "O" : "X";
                 TxtAnswer[i].color = isCorrect ? Color.green : Color.red;
-            }
-            else
-            {
-                TxtAnswer[i].text = "-";
-                TxtAnswer[i].color = Color.white;
+                if (!isCorrect) { particleWrongAnswer.gameObject.SetActive(true); }
+                else { particleCorrectAnswer.gameObject.SetActive(true); }
             }
         }
+        else
+        {
+            ResetAnswerText();
+        }
     }
-    
+
     internal void SetAnswer(int answerIndex)
     {
         if (((registeredPlayer < 0 || _cachedRegisteredPlayer == null) && !Networking.IsOwner(gameObject)) 
@@ -289,6 +330,15 @@ public class TriviaPlayerPodium : UdonSharpBehaviour
         selectedAnswer = answerIndex;
         RequestSerialization();
         OnDeserialization();
+    }
+
+    internal void ResetAnswerText()
+    {
+        for (int i = 0; i < TxtAnswer.Length; i++)
+        {
+            TxtAnswer[i].text = "-";
+            TxtAnswer[i].color = Color.white;
+        }
     }
 
     public void SelectAnswerA()
@@ -312,6 +362,8 @@ public class TriviaPlayerPodium : UdonSharpBehaviour
     {
         if (registeredPlayer < 0 || _cachedRegisteredPlayer == null || !_cachedRegisteredPlayer.isLocal) 
         {
+            sliderPodiumStairs.value = 0;
+            podiumStairs.transform.localPosition = STAIR_HEIGHT_LOWEST;
             if (sliderPodiumStairs.gameObject.activeSelf) { sliderPodiumStairs.gameObject.SetActive(false); }
             if (podiumStairs.gameObject.activeSelf) { podiumStairs.gameObject.SetActive(false); }
             return; 

@@ -35,6 +35,7 @@ public class TriviaManager : UdonSharpBehaviour
     [SerializeField] private Transform PanelTemplateCategory;
     [SerializeField] private Transform PanelTemplateAnswerPlyCircle;
     [SerializeField] private Toggle ToggleRepeats;
+    [SerializeField] private Toggle ToggleOtherPly;
     [SerializeField] private Toggle ToggleSFX;
     [SerializeField] private Button ButtonNext;
     [SerializeField] private Button ButtonRefresh;
@@ -46,6 +47,9 @@ public class TriviaManager : UdonSharpBehaviour
     private double _networkShuffleSeed = 0;
     [UdonSynced] private bool allowRepeatQuestions = false;
     private bool _allowRepeatQuestions = false;
+    [UdonSynced] private bool otherPlayersVisible = true;
+    internal bool _otherPlayersVisible = true;
+    
     private DataList _questionsAnswered = new DataList();
     [UdonSynced] private int questionID = 0;
     private int _questionID = 0;
@@ -81,6 +85,7 @@ public class TriviaManager : UdonSharpBehaviour
     internal DataList _registeredPodiums = new DataList();
     private DataList _registeredAnswerPlyCircle = new DataList();
     internal bool _localIsPlaying = false;
+    internal bool _localRequestedPlay = false;
 
     private void Start()
     {
@@ -129,6 +134,12 @@ public class TriviaManager : UdonSharpBehaviour
             _allowRepeatQuestions = allowRepeatQuestions;
             ToggleRepeats.isOn = _allowRepeatQuestions;
         }
+        // Refresh other player answer reveals
+        if (otherPlayersVisible != _otherPlayersVisible)
+        {
+            _otherPlayersVisible = otherPlayersVisible;
+            ToggleOtherPly.isOn = _otherPlayersVisible;
+        }
         // Refresh current question
         if (questionID != _questionID || networkShuffleSeed != _networkShuffleSeed)
         {
@@ -171,6 +182,8 @@ public class TriviaManager : UdonSharpBehaviour
                         if (answerCnt == 2) { podiumScript.podiumAnimator.Play("PodiumPromptQuestionDuo", 0, 0.5f); }
                         else { podiumScript.podiumAnimator.Play("PodiumPromptQuestionQuad", 0, 0.5f); }
                         podiumScript.podiumAnimator.speed = 0;
+                        // Always show answer plate upon answer reveal.
+                        if (podiumScript._registeredPlayer >= 0 && !_otherPlayersVisible) { ((Transform)_registeredAnswerPlyCircle[i].Reference).gameObject.SetActive(true); }
                         //podiumScript.podiumAnimator.SetInteger("answerCnt", 0);
                     }
                 }
@@ -219,12 +232,15 @@ public class TriviaManager : UdonSharpBehaviour
             bool isLocal = false;
             if (podiumScript._registeredPlayer == Networking.LocalPlayer.playerId || (podiumScript._registeredPlayer < 0 && Networking.IsOwner(podiumScript.gameObject)))
             {
+                // We do this here to account for null answers
+                podiumScript.ResetAnswerText();
                 podiumScript.SetAnswer(-1);
                 if (podiumScript._registeredPlayer == Networking.LocalPlayer.playerId)
                 {
                     isLocal = true;
                     PlayAudioAtPoint(podiumScript.transform.position, TriviaManagerAudioClips.ShowQuestion);
                 }
+    
             }
             for (int j = 0; j < podiumScript.buttonAnswer.Length; j++)
             {
@@ -278,7 +294,7 @@ public class TriviaManager : UdonSharpBehaviour
 
 
     [NetworkCallable]
-    public void ReceiveOwnerSerializationRequest(int in_questionID, bool in_repeats, bool[] in_categories)
+    public void ReceiveOwnerSerializationRequest(int in_questionID, bool in_repeats, bool in_reveal, bool[] in_categories)
     {
         if (owner == null) { owner = Networking.GetOwner(gameObject); }
         if (!owner.isLocal || !Utilities.IsValid(in_categories)) { return; }
@@ -288,17 +304,18 @@ public class TriviaManager : UdonSharpBehaviour
             if (i < in_categories.Length) { selectedCategories[i] = in_categories[i]; }
         }
         allowRepeatQuestions = in_repeats;
+        otherPlayersVisible = in_reveal;
         if (in_questionID >= 0) { questionID = in_questionID; }
         RequestSerialization();
         OnDeserialization();
     }
 
-    private void SendOwnerSerializationRequest(int in_questionID, bool in_repeats, bool[] in_categories)
+    private void SendOwnerSerializationRequest(int in_questionID, bool in_repeats, bool in_reveal, bool[] in_categories)
     {
         if (owner != null)
         {
-            if (owner.isLocal) { ReceiveOwnerSerializationRequest(in_questionID, in_repeats, in_categories); }
-            else { SendCustomNetworkEvent(VRC.Udon.Common.Interfaces.NetworkEventTarget.Owner, nameof(ReceiveOwnerSerializationRequest), in_questionID, in_repeats, in_categories); }
+            if (owner.isLocal) { ReceiveOwnerSerializationRequest(in_questionID, in_repeats, in_reveal, in_categories); }
+            else { SendCustomNetworkEvent(VRC.Udon.Common.Interfaces.NetworkEventTarget.Owner, nameof(ReceiveOwnerSerializationRequest), in_questionID, in_repeats, in_reveal, in_categories); }
         }
     }
 
@@ -306,7 +323,14 @@ public class TriviaManager : UdonSharpBehaviour
     {
         if (_loadingNetworkedValues) { return; }
         _allowRepeatQuestions = ToggleRepeats.isOn;
-        SendOwnerSerializationRequest(-1, _allowRepeatQuestions, _selectedCategories);
+        SendOwnerSerializationRequest(-1, _allowRepeatQuestions, _otherPlayersVisible, _selectedCategories);
+    }
+
+    public void OnToggleOtherPly()
+    {
+        if (_loadingNetworkedValues) { return; }
+        _otherPlayersVisible = ToggleOtherPly.isOn;
+        SendOwnerSerializationRequest(-1, _allowRepeatQuestions, _otherPlayersVisible, _selectedCategories);
     }
 
     public void OnToggleCategory()
@@ -316,7 +340,7 @@ public class TriviaManager : UdonSharpBehaviour
         {
             if (i < _selectedCategories.Length) { _selectedCategories[i] = ToggleCategories[i].isOn; }
         }
-        SendOwnerSerializationRequest(-1, _allowRepeatQuestions, _selectedCategories);
+        SendOwnerSerializationRequest(-1, _allowRepeatQuestions, _otherPlayersVisible, _selectedCategories);
     }
 
     public void OnPushNext()
@@ -334,7 +358,7 @@ public class TriviaManager : UdonSharpBehaviour
         revealAnswer = !revealAnswer;
         ButtonNext.interactable = false;
         if (!revealAnswer) { PickRandomQuestion(); }
-        SendOwnerSerializationRequest(-1, _allowRepeatQuestions, _selectedCategories);
+        SendOwnerSerializationRequest(-1, _allowRepeatQuestions, _otherPlayersVisible, _selectedCategories);
     }
 
     private void PickRandomQuestion()
@@ -374,7 +398,7 @@ public class TriviaManager : UdonSharpBehaviour
             return;
         }
         networkShuffleSeed = Networking.GetServerTimeInMilliseconds();
-        SendOwnerSerializationRequest(questionPickedID, _allowRepeatQuestions, _selectedCategories);
+        SendOwnerSerializationRequest(questionPickedID, _allowRepeatQuestions, _otherPlayersVisible, _selectedCategories);
     }
 
     private void CreateCategories()
@@ -438,7 +462,7 @@ public class TriviaManager : UdonSharpBehaviour
             {
                 selectedCategories[i] = true;
             }
-            SendOwnerSerializationRequest(-1, allowRepeatQuestions, selectedCategories);
+            SendOwnerSerializationRequest(-1, allowRepeatQuestions, _otherPlayersVisible, selectedCategories);
         }
     }
 
@@ -584,7 +608,7 @@ public class TriviaManager : UdonSharpBehaviour
     public void OnNewPlayerJoined()
     {
         if (owner == null || !owner.isLocal) { return; }
-        SendOwnerSerializationRequest(_questionID, _allowRepeatQuestions, _selectedCategories);
+        SendOwnerSerializationRequest(_questionID, _allowRepeatQuestions, _otherPlayersVisible, _selectedCategories);
     }
 
     // -- Podium Answer Linking --
@@ -593,7 +617,8 @@ public class TriviaManager : UdonSharpBehaviour
         if (_registeredPodiums.Contains(triviaPlayerPodium)) { return; }
         _registeredPodiums.Add(triviaPlayerPodium);
         GameObject newPlyCircle = Instantiate(PanelTemplateAnswerPlyCircle.gameObject, PanelTemplateAnswerPlyCircle.parent);
-        newPlyCircle.transform.GetChild(0).GetComponent<Image>().material.SetTexture("_MainTex", triviaPlayerPodium.photoRT);
+        RawImage image = newPlyCircle.transform.GetChild(0).GetComponent<RawImage>();
+        image.texture = triviaPlayerPodium.photoRT;
         newPlyCircle.gameObject.SetActive(false);
         _registeredAnswerPlyCircle.Add(newPlyCircle.transform);
     }
@@ -612,7 +637,9 @@ public class TriviaManager : UdonSharpBehaviour
         if (!Utilities.IsValid(triviaPlayerPodium) || !_registeredPodiums.Contains(triviaPlayerPodium)) { return; }
         int index = _registeredPodiums.IndexOf(triviaPlayerPodium);
         Transform plyCircle = ((Transform)_registeredAnswerPlyCircle[index].Reference);
-        plyCircle.gameObject.SetActive(answerIndex >= 0 && triviaPlayerPodium._registeredPlayer >= 0);
+        bool answerIsVisible = triviaPlayerPodium._registeredPlayer >= 0 && triviaPlayerPodium._registeredPlayer == Networking.LocalPlayer.playerId;
+        answerIsVisible = answerIsVisible || _otherPlayersVisible || !_localIsPlaying;
+        plyCircle.gameObject.SetActive(answerIndex >= 0 && triviaPlayerPodium._registeredPlayer >= 0 && answerIsVisible);
         plyCircle.SetParent(answerIndex >= 0 ? PanelAnswerPlyList[answerIndex].transform : null, false);
     }
 
