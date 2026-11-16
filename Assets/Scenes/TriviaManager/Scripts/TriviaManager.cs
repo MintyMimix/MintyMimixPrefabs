@@ -11,6 +11,11 @@ using VRC.SDK3.UdonNetworkCalling;
 using VRC.SDKBase;
 using VRC.Udon;
 
+public enum TriviaManagerAudioClips
+{
+    EnterGame, ExitGame, ShowQuestion, AnswerCorrect, AnswerIncorrect
+}
+
 [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
 public class TriviaManager : UdonSharpBehaviour
 {
@@ -20,15 +25,22 @@ public class TriviaManager : UdonSharpBehaviour
     [SerializeField] private Color colorRevealAnswer = Color.red;
     [SerializeField] private Color colorNextQuestion = Color.green;
     [Header("References")]
+    [SerializeField] private TMP_Text TxtCategory;
     [SerializeField] private TMP_Text TxtQuestion;
     [SerializeField] private Transform[] PanelParents;
     [SerializeField] private Transform[] PanelAnswers;
+    [SerializeField] private Transform[] PanelAnswerPlyList;
     private TMP_Text[] TxtAnswers;
     [SerializeField] private Toggle ToggleTemplateCategory;
+    [SerializeField] private Transform PanelTemplateCategory;
+    [SerializeField] private Transform PanelTemplateAnswerPlyCircle;
     [SerializeField] private Toggle ToggleRepeats;
+    [SerializeField] private Toggle ToggleSFX;
     [SerializeField] private Button ButtonNext;
     [SerializeField] private Button ButtonRefresh;
     [SerializeField] private Image ImageNext;
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip[] audioClips; // Corresponds to TriviaManagerAudioClips enum
 
     [UdonSynced] private double networkShuffleSeed = 0;
     private double _networkShuffleSeed = 0;
@@ -57,8 +69,18 @@ public class TriviaManager : UdonSharpBehaviour
     private const int QUESTION_MAX_LOAD_ATTEMPTS = 4;
 
     private Toggle[] ToggleCategories = new Toggle[0];
+    private Transform[] PanelCategories = new Transform[0];
+    private TMP_Text[] TxtCategories = new TMP_Text[0];
+    private Toggle[] ToggleAnswers = new Toggle[0];
+    private VRCTweenHandle[] _TweenAnswers = new VRCTweenHandle[0];
+    private const int MAX_CATEGORIES_PER_PANEL = 6;
     private Transform ImageArrowRefresh;
     private VRCTweenHandle _refreshingArrowSpin;
+
+    // Answers
+    internal DataList _registeredPodiums = new DataList();
+    private DataList _registeredAnswerPlyCircle = new DataList();
+    internal bool _localIsPlaying = false;
 
     private void Start()
     {
@@ -66,10 +88,16 @@ public class TriviaManager : UdonSharpBehaviour
         owner = Networking.GetOwner(gameObject);
         questionsLoaded = false;
         ToggleTemplateCategory.gameObject.SetActive(false);
+        PanelTemplateCategory.gameObject.SetActive(false);
+        PanelTemplateAnswerPlyCircle.gameObject.SetActive(false);
         TxtAnswers = new TMP_Text[PanelAnswers.Length];
+        ToggleAnswers = new Toggle[PanelAnswers.Length];
+        _TweenAnswers = new VRCTweenHandle[PanelAnswers.Length];
         for (int i = 0; i < PanelAnswers.Length; i++)
         {
             TxtAnswers[i] = PanelAnswers[i].GetComponentInChildren<TMP_Text>(true);
+            ToggleAnswers[i] = PanelAnswers[i].GetComponent<Toggle>();
+            _TweenAnswers[i] = PanelAnswers[i].TweenScale(Vector3.one * 1.5f, 0.1f, VRCTweenEase.Linear).SetLoops(2, VRCTweenLoopType.Yoyo).Pause();
         }
         ImageArrowRefresh = ButtonRefresh.transform.GetChild(0).GetChild(0).GetChild(0);
         _refreshingArrowSpin = ImageArrowRefresh.TweenLocalRotation(new Vector3(0, 0, 180f), 1.0f, VRCTweenEase.Linear).SetLoops(-1, VRCTweenLoopType.Incremental).Pause();
@@ -115,17 +143,35 @@ public class TriviaManager : UdonSharpBehaviour
             _revealAnswer = revealAnswer;
             if (revealAnswer)
             {
-                DataList answerList = GetAnswersFromQuestion(_questionID);
+                DataList answerList = GetCurrentAnswers();
                 if (Utilities.IsValid(answerList))
                 {
                     int answerCnt = answerList.Count;
                     string answerStr = answerList[0].String;
+                    int correctAnswerIndex = -1;
                     for (int i = 0; i < PanelAnswers.Length; i++)
                     {
                         // Enable/disable panels according to number of answers.
                         if (i >= answerCnt || answerList[i].Error != DataError.None) { PanelAnswers[i].gameObject.SetActive(false); continue; }
+                        // Set toggles accordingly.
                         bool isAnswer = answerStr.Equals(TxtAnswers[i].text);
-                        if (PanelAnswers[i].gameObject.activeSelf != isAnswer) { PanelAnswers[i].gameObject.SetActive(isAnswer); }
+                        if (ToggleAnswers[i].isOn != isAnswer) { ToggleAnswers[i].isOn = isAnswer; }
+                        if (isAnswer) { correctAnswerIndex = i; _TweenAnswers[i].Restart(); }
+                    }
+                    int podiumCount = _registeredPodiums.Count;
+                    for (int i = 0; i < podiumCount; i++)
+                    {
+                        if (_registeredPodiums[i].Error != DataError.None) { continue; }
+                        TriviaPlayerPodium podiumScript = (TriviaPlayerPodium)_registeredPodiums[i].Reference;
+                        podiumScript.SendAnswerStatus(podiumScript._selectedAnswer == correctAnswerIndex);
+                        if (podiumScript._registeredPlayer == Networking.LocalPlayer.playerId) 
+                        {
+                            for (int j = 0; j < podiumScript.buttonAnswer.Length; j++) { podiumScript.buttonAnswer[j].DisableInteractive = true; }
+                        }
+                        if (answerCnt == 2) { podiumScript.podiumAnimator.Play("PodiumPromptQuestionDuo", 0, 0.5f); }
+                        else { podiumScript.podiumAnimator.Play("PodiumPromptQuestionQuad", 0, 0.5f); }
+                        podiumScript.podiumAnimator.speed = 0;
+                        //podiumScript.podiumAnimator.SetInteger("answerCnt", 0);
                     }
                 }
             }
@@ -142,10 +188,11 @@ public class TriviaManager : UdonSharpBehaviour
         if (_questionID < 0 || _questionID >= totalQuestionCount || !Utilities.IsValid(questionsByID)
             || questionsByID[_questionID].Error != DataError.None) { return; }
         DataList questionAndAnswers = questionsByID[_questionID].DataList;
-        DataList answerList = GetAnswersFromQuestion(_questionID);
+        DataList answerList = GetCurrentAnswers();
         if (!Utilities.IsValid(answerList)) { return; }
         int answerCnt = answerList.Count;
-        TxtQuestion.text = questionAndAnswers[1].String;
+        TxtCategory.text = questionAndAnswers[1].String;
+        TxtQuestion.text = questionAndAnswers[2].String;
         ShuffleTokens(answerList, _networkShuffleSeed);
         for (int i = 0; i < PanelAnswers.Length; i++)
         {
@@ -153,10 +200,56 @@ public class TriviaManager : UdonSharpBehaviour
             if (i >= answerCnt || answerList[i].Error != DataError.None) { PanelAnswers[i].gameObject.SetActive(false); continue; }
             if (!PanelAnswers[i].gameObject.activeSelf) { PanelAnswers[i].gameObject.SetActive(true); }
             TxtAnswers[i].text = answerList[i].String;
+            ToggleAnswers[i].isOn = false;
         }
         CheckPanelParents();
+        for (int i = 0; i < TxtCategories.Length; i++)
+        {
+            ToggleCategories[i].image.color = TxtCategories[i].text.Equals(questionAndAnswers[1].String, StringComparison.InvariantCultureIgnoreCase) ? new Color32(40, 220, 153, 255) : new Color32(0, 0, 0, 255);
+        }
         // While only the owner cares about the answered questions list, we'll store it locally as well in case they disconnect and owner transfers
         if (!_questionsAnswered.Contains(_questionID)) { _questionsAnswered.Add(_questionID); }
+        // Finally, let's reveal answer buttons if applicable.
+        int podiumCount = _registeredPodiums.Count;
+        for (int i = 0; i < podiumCount; i++)
+        {
+            if (_registeredPodiums[i].Error != DataError.None) { continue; }
+            TriviaPlayerPodium podiumScript = (TriviaPlayerPodium)_registeredPodiums[i].Reference;
+            if (!Utilities.IsValid(podiumScript)) { continue; }
+            bool isLocal = false;
+            if (podiumScript._registeredPlayer == Networking.LocalPlayer.playerId || (podiumScript._registeredPlayer < 0 && Networking.IsOwner(podiumScript.gameObject)))
+            {
+                podiumScript.SetAnswer(-1);
+                if (podiumScript._registeredPlayer == Networking.LocalPlayer.playerId)
+                {
+                    isLocal = true;
+                    PlayAudioAtPoint(podiumScript.transform.position, TriviaManagerAudioClips.ShowQuestion);
+                }
+            }
+            for (int j = 0; j < podiumScript.buttonAnswer.Length; j++)
+            {
+                podiumScript.buttonAnswer[j].gameObject.SetActive(j < answerCnt);
+                podiumScript.buttonAnswer[j].DisableInteractive = !isLocal;
+                if (answerCnt == 2) 
+                { 
+                    podiumScript.buttonAnswer[j].InteractionText = j == 0 ? "T" : "F";
+                    podiumScript.tweenInteractAnswer[j].ChangeEndValue(podiumScript.INTERACTABLE_TWEEN_LOCALPOS + podiumScript.INTERACTABLE_TWEEN_RESET_DUO, false);
+                    podiumScript.tweenInteractAnswer[j].Restart();
+                }
+                else 
+                { 
+                    podiumScript.buttonAnswer[j].InteractionText = ((char)('A' + j)).ToString();
+                    podiumScript.tweenInteractAnswer[j].ChangeEndValue(podiumScript.INTERACTABLE_TWEEN_LOCALPOS, false);
+                    podiumScript.tweenInteractAnswer[j].Restart();
+                }
+            }
+            //podiumScript.podiumAnimator.SetInteger("answerCnt", answerCnt);
+            if (answerCnt == 2) { podiumScript.podiumAnimator.Play("PodiumPromptQuestionDuo"); }
+            else { podiumScript.podiumAnimator.Play("PodiumPromptQuestionQuad"); }
+            podiumScript.podiumAnimator.speed = 1;
+            podiumScript.QueuePhoto();
+        }
+
     }
 
     private DataList GetAnswersFromQuestion(int in_questionID)
@@ -166,9 +259,9 @@ public class TriviaManager : UdonSharpBehaviour
         DataList questionAndAnswers = questionsByID[in_questionID].DataList;
         DataList answerList = new DataList();
         int listLen = questionAndAnswers.Count;
-        // There should always be an ID [0], question [1], answer [2], incorrect answer[3], at minimum
-        if (listLen < 4 || questionAndAnswers[0].Error != DataError.None) { return null; }
-        for (int i = 2; i < listLen; i++)
+        // There should always be an ID [0], category [1], question [2], answer [3], incorrect answer[4], at minimum
+        if (listLen < 5 || questionAndAnswers[0].Error != DataError.None) { return null; }
+        for (int i = 3; i < listLen; i++)
         {
             if (questionAndAnswers[i].Error != DataError.None) { continue; }
             answerList.Add(questionAndAnswers[i]);
@@ -177,6 +270,12 @@ public class TriviaManager : UdonSharpBehaviour
         if (answerCnt < 2) { return null; }
         return answerList;
     }
+
+    internal DataList GetCurrentAnswers()
+    {
+        return GetAnswersFromQuestion(_questionID);
+    }
+
 
     [NetworkCallable]
     public void ReceiveOwnerSerializationRequest(int in_questionID, bool in_repeats, bool[] in_categories)
@@ -291,20 +390,41 @@ public class TriviaManager : UdonSharpBehaviour
                 Destroy(ToggleCategories[i].gameObject);
             }
         }
+        if (Utilities.IsValid(PanelCategories) && PanelCategories.Length > 0)
+        {
+            for (int i = 0; i < PanelCategories.Length; i++)
+            {
+                if (!Utilities.IsValid(PanelCategories[i])) { continue; }
+                Destroy(PanelCategories[i].gameObject);
+            }
+        }
 
         _loadingNetworkedValues = true;
 
+        int subpanelCount = Mathf.CeilToInt(categoryCount / (float)MAX_CATEGORIES_PER_PANEL);
+        PanelCategories = new Transform[subpanelCount];
+        for (int i = 0; i < subpanelCount; i++)
+        {
+            GameObject newPanelObj = Instantiate(PanelTemplateCategory.gameObject, PanelTemplateCategory.transform.parent);
+            if (!Utilities.IsValid(newPanelObj)) { continue; }
+            PanelCategories[i] = newPanelObj.transform;
+            newPanelObj.SetActive(true);
+        }
+        
         ToggleCategories = new Toggle[categoryCount];
+        TxtCategories = new TMP_Text[categoryCount];
         for (int i = 0; i < categoryCount; i++)
         {
-            GameObject newToggleObj = Instantiate(ToggleTemplateCategory.gameObject, ToggleTemplateCategory.transform.parent);
+            int subcategoryIndex = subpanelCount > 1 ? Mathf.FloorToInt(i % subpanelCount) : 0;
+            GameObject newToggleObj = Instantiate(ToggleTemplateCategory.gameObject, Utilities.IsValid(PanelCategories[subcategoryIndex]) ? PanelCategories[subcategoryIndex] : null);
             if (!Utilities.IsValid(newToggleObj)) { continue; }
             ToggleCategories[i] = newToggleObj.GetComponent<Toggle>();
             newToggleObj.SetActive(true);
             if (Utilities.IsValid(_selectedCategories) && i < _selectedCategories.Length) { ToggleCategories[i].isOn = _selectedCategories[i]; }
             if (Utilities.IsValid(categoryNames) && i < categoryNames.Count && categoryNames[i].Error == DataError.None)
             {
-                ToggleCategories[i].GetComponentInChildren<TMP_Text>(true).text = categoryNames[i].String;
+                TxtCategories[i] = ToggleCategories[i].GetComponentInChildren<TMP_Text>(true);
+                TxtCategories[i].text = categoryNames[i].String;
             }
         }
 
@@ -369,7 +489,7 @@ public class TriviaManager : UdonSharpBehaviour
             // Then fill the question list accordingly.
             DataList innerQuestionList = new DataList();
             innerQuestionList.Add((int)totalQuestionCount);
-            for (int j = 1; j < questionFull.Length; j++)
+            for (int j = 0; j < questionFull.Length; j++)
             {
                 innerQuestionList.Add(questionFull[j]);
             }
@@ -424,12 +544,25 @@ public class TriviaManager : UdonSharpBehaviour
     {
         System.Random tokenRNG = new System.Random(BitConverter.DoubleToInt64Bits(seed).GetHashCode());
         int n = list.Count;
-        for (int i = 0; i < n - 1; i++)
+        // Exception case: true/false and yes/no questions will always be in True/False or Yes/No order.
+        if (n == 2)
         {
-            int randomIndex = tokenRNG.Next(i, n);
-            DataToken temp = list[i];
-            list[i] = list[randomIndex];
-            list[randomIndex] = temp;
+            if (list[0].String.ToLowerInvariant().Contains("f") || list[0].String.ToLowerInvariant().Contains("n")) 
+            {
+                DataToken temp = list[0];
+                list[0] = list[1];
+                list[1] = temp;
+            }
+        }
+        else
+        {
+            for (int i = 0; i < n - 1; i++)
+            {
+                int randomIndex = tokenRNG.Next(i, n);
+                DataToken temp = list[i];
+                list[i] = list[randomIndex];
+                list[randomIndex] = temp;
+            }
         }
     }
 
@@ -452,6 +585,63 @@ public class TriviaManager : UdonSharpBehaviour
     {
         if (owner == null || !owner.isLocal) { return; }
         SendOwnerSerializationRequest(_questionID, _allowRepeatQuestions, _selectedCategories);
+    }
+
+    // -- Podium Answer Linking --
+    internal void RegisterPodium(TriviaPlayerPodium triviaPlayerPodium)
+    {
+        if (_registeredPodiums.Contains(triviaPlayerPodium)) { return; }
+        _registeredPodiums.Add(triviaPlayerPodium);
+        GameObject newPlyCircle = Instantiate(PanelTemplateAnswerPlyCircle.gameObject, PanelTemplateAnswerPlyCircle.parent);
+        newPlyCircle.transform.GetChild(0).GetComponent<Image>().material.SetTexture("_MainTex", triviaPlayerPodium.photoRT);
+        newPlyCircle.gameObject.SetActive(false);
+        _registeredAnswerPlyCircle.Add(newPlyCircle.transform);
+    }
+
+    // While this should never be used, it's useful for posterity
+    internal void UnregisterPodium(TriviaPlayerPodium triviaPlayerPodium)
+    {
+        if (!_registeredPodiums.Contains(triviaPlayerPodium)) { return; }
+        int index = _registeredPodiums.IndexOf(triviaPlayerPodium);
+        _registeredPodiums.Remove(triviaPlayerPodium);
+        if (index < _registeredAnswerPlyCircle.Count) { _registeredAnswerPlyCircle.RemoveAt(index); }
+    }
+
+    internal void SetPodiumPlyCircleParent(TriviaPlayerPodium triviaPlayerPodium, int answerIndex)
+    {
+        if (!Utilities.IsValid(triviaPlayerPodium) || !_registeredPodiums.Contains(triviaPlayerPodium)) { return; }
+        int index = _registeredPodiums.IndexOf(triviaPlayerPodium);
+        Transform plyCircle = ((Transform)_registeredAnswerPlyCircle[index].Reference);
+        plyCircle.gameObject.SetActive(answerIndex >= 0 && triviaPlayerPodium._registeredPlayer >= 0);
+        plyCircle.SetParent(answerIndex >= 0 ? PanelAnswerPlyList[answerIndex].transform : null, false);
+    }
+
+    internal TriviaPlayerPodium GetLocalPodium()
+    {
+        if (!_localIsPlaying) { return null; }
+        int podiumCount = _registeredPodiums.Count;
+        for (int i = 0; i < podiumCount; i++)
+        {
+            if (_registeredPodiums[i].Error != DataError.None) { continue; }
+            TriviaPlayerPodium podium = (TriviaPlayerPodium)_registeredPodiums[i].Reference;
+            if (!Utilities.IsValid(podium)) { continue; }
+            if (podium._registeredPlayer == Networking.LocalPlayer.playerId) { return podium; }
+        }
+        return null;
+    }
+
+    // -- Podium Options --
+    public void OnToggleAudioSource()
+    {
+        audioSource.gameObject.SetActive(ToggleSFX.isOn);
+    }
+
+    internal void PlayAudioAtPoint(Vector3 position, TriviaManagerAudioClips clip)
+    {
+        audioSource.transform.position = position;
+        audioSource.Stop();
+        audioSource.clip = audioClips[(int)clip];
+        audioSource.Play();
     }
 
 }
