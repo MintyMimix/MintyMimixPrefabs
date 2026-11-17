@@ -19,14 +19,14 @@ Bump n' Bash^What was Bump n' Bash originally going to be titled?^Thrash Bash^Sm
 Bump n' Bash^Which is the oldest unmodified stage?^Synth Street^Bitcrush Bash^Brawl Burned^Stone's Throw
 Bump n' Bash^Which stage was originally only meant for bug-testing but was later reworked into a full-time stage?^Bitcrush Bash^Hallow's Thrash^Casted Dream^Facing Blues
 Bump n' Bash^What inspired the stage Borrowed Space?^Rats from Counter-Strike 1.6^Grounded^Alice in Wonderland^ToyHouse from Garry's Mod
-Bump n' Bash^What is the stage name Borrowed Space specifically attempting to reference?^The Borrowers (1952)^On Borrowed Time (1939)^Bill's Ability (Borrowed Time) in Dead by Daylight (2016)^Borrowed Hearts (1997)
+Bump n' Bash^What is the stage name Borrowed Space specifically attempting to reference?^The Borrowers (1952)^John Lennon's Borrowed Time (1984)^Borrowed Time (Bill's Ability) in Dead by Daylight (2016)^Borrowed Hearts (1997)
 Bump n' Bash^Who created the stage Sunderdome?^MintyMimix^Spectremint^SaberL^Ferð
 Bump n' Bash^Who created the stage Casted Dream?^Spectremint^MintyMimix^TheMitzez^LixianPrime
 Bump n' Bash^Who created the stage Brawl Burned?^TheMitzez^MintyMimix^Ecchi Skecchi^LixianPrime
-Bump n' Bash^Who created the stage Hallow's Thrash?^TheMitzez^Spectremint^Ecchi Skecchi^LixianPrime
+Bump n' Bash^Who created the stage Hallow's Thrash?^TheMitzez^Spectremint^Ecchi Skecchi^Vince_Borzoi
 Bump n' Bash^Who created the stage Tree Top Molly Wop?^SaberL^Ecchi Skecchi^MintyMimix^Spectremint
 Bump n' Bash^Who created the stage Punch Out O'Clock?^Ecchi Skecchi^MintyMimix^SaberL^TheMitzez
-Bump n' Bash^Who created the stage Ordovidican?^Ferð^Spectremint^MintyMimix^TheMitzez
+Bump n' Bash^Who created the stage Ordovidican?^Ferð^Spectremint^Vince_Borzoi^TheMitzez
 Bump n' Bash^What was the original theme for Casted Dream?^A Lighthouse^Giant Video Game Console^Bouncing atop of fluffy clouds^Idyllic Fishing Shack
 Bump n' Bash^Who was the original voice actor for Bump n' Bash post-release?^LixianPrime^BombardToo^MintyMimix^Feldarin
 Bump n' Bash^What is the rarest item in the game?^Refresh^Boss Glove^Rage^Leech
