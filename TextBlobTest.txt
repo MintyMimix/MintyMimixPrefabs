@@ -1,4 +1,4 @@
-"VRChat^What year was VRChat released?^2014^2020^2016^2018
+VRChat^What year was VRChat released?^2014^2020^2016^2018
 VRChat^Before Physbones, what did people use to animate hair and accessories?^Dynamic Bones^Bonelab^Magica Cloth^Dynamite Boners
 VRChat^Which game world has the most visits total?^Murder 4^Prison Escape^Probability Labs^Terrors of Nowhere
 VRChat^Which company did Valve cooperate with in the creation of the Vive?^HTC^Oculus^Apple^Meta
@@ -97,4 +97,4 @@ Bump n' Bash^True or False: One of the cans on Borrowed Space contains hot sauce
 Bump n' Bash^True or False: One of the cans on Borrowed Space contains vinegar.^FALSE^TRUE
 Bump n' Bash^True or False: Prior to specter mode, spectators used to be able to stand in audience bleachers on Sunderdome.^FALSE^TRUE
 Bump n' Bash^True or False: The Infinitrum was the final stage designed for Bump n' Bash.^TRUE^FALSE
-Bump n' Bash^Which of the following announcer options is NOT by a professional voice actor?^MintyMimix^BombardToo^LixianPrime^Feldarin"
+Bump n' Bash^Which of the following announcer options is NOT by a professional voice actor?^MintyMimix^BombardToo^LixianPrime^Feldarin
