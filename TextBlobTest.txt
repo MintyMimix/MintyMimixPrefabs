@@ -67,7 +67,7 @@ Bump n' Bash^How many matches must someone play in order to no longer be conside
 Bump n' Bash^What was the original name for Grand Slam during its concept phases?^David vs Goliath^Grand Boss Battle^VIP^Protect The Boss
 Bump n' Bash^True or False: The internal names for damage types are all onomatopeia, such as 'kapow' and 'yoink'.^TRUE^FALSE
 Bump n' Bash^True or False: The internal name for Starlight Skyway, Highway in the Sky, a reference to Sonic the Hedgehog.^TRUE^FALSE
-Bump n' Bash^True or False: The internal name for 64Fort, Blockfort, is a reference to Team Fortress Classic.^FALSE^TRUE
+Bump n' Bash^True or False: The internal name for 64Fort, Blockfort, is a reference to Team Fortress.^TRUE^FALSE
 Bump n' Bash^True or False: The song names displayed on Casted Dream's props are all parodies of real-world songs and bands.^TRUE^FALSE
 Bump n' Bash^True or False: Many of the SFX cues used in this game are nods to the MMORPG City of Heroes.^TRUE^FALSE
 Bump n' Bash^True or False: Many of the SFX cues used in this game are nods to the MMORPG Final Fantasy XI.^FALSE^TRUE
