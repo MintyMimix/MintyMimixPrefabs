@@ -2,7 +2,7 @@ History^When was Bump n' Bash [Classic] released?^2026-01-01^2026-07-27^2026-06-
 History^What was the Plasma Cannon called prior to its rework?^Superlaser^Laser^Plasma Blast^Sniper Beam
 History^What stage was completely removed in between Bump n' Bash: Classic and Bump n' Bash: Round 2?^Deep Blues^Casted Dream^Bitcrush Bash^Starlight Skyway
 History^How many versions of Starlight Skyway have been released over the course of Bump n' Bash's history?^4^2^3^5
-Development^What was Bump n' Bash originally going to be titled?^Thrash Bash^Smash n' Bash^Bash Master^Bump n' Brawl
+Dev Facts^What was Bump n' Bash originally going to be titled?^Thrash Bash^Smash n' Bash^Bash Master^Bump n' Brawl
 Stages^Which is the oldest unmodified stage?^Synth Street^Bitcrush Bash^Brawl Burned^Stone's Throw
 Stages^Which stage was originally only meant for bug-testing but was later reworked into a full-time stage?^Bitcrush Bash^Hallow's Thrash^Casted Dream^Facing Blues
 Stages^What inspired the stage Borrowed Space?^Rats from Counter-Strike 1.6^Grounded^Alice in Wonderland^ToyHouse from Garry's Mod
@@ -24,16 +24,16 @@ Gameplay^How do you earn the 'Boundary Breaker' achievement?^Get knocked out pas
 History^Which of the following gamemodes was NOT in Bump n' Bash: Classic?^Conversion^Fitting In^King of the Hill^Infection
 Secrets^True or False: There is a hidden powerup inside the drawer beneath the TV on Borrowed Space.^TRUE^FALSE
 Secrets^True or False: You can enable Ordovidican's anti-gravity feature on any stage.^TRUE^FALSE
-Development^True or False: Sunderdome was originally conceived as a wrestler-style cage match.^TRUE^FALSE
-Development^True or False: Starlight Skyway was originally themed around an intergalactic amusement park.^FALSE^TRUE
-Development^True or False: Stone's Throw was originally themed around a large, maze-like temple.^FALSE^TRUE
-Development^True or False: The Easy Mode version of Hallow's Thrash was originally going to have multiple new platforms.^FALSE^TRUE
+Dev Facts^True or False: Sunderdome was originally conceived as a wrestler-style cage match.^TRUE^FALSE
+Dev Facts^True or False: Starlight Skyway was originally themed around an intergalactic amusement park.^FALSE^TRUE
+Dev Facts^True or False: Stone's Throw was originally themed around a large, maze-like temple.^FALSE^TRUE
+Dev Facts^True or False: The Easy Mode version of Hallow's Thrash was originally going to have multiple new platforms.^FALSE^TRUE
 Secrets^True or False: There is a hidden button on Ordovidican that will let you preview the Anniversary Event.^FALSE^TRUE
 History^True or False: Bump n' Bash originally released with 10 stages.^TRUE^FALSE
 History^True or False: Bump n' Bash: Round 2 originally released with 18 stages.^FALSE^TRUE
-Development^True or False: The world's lead developer, MintyMimix, goes by they/them pronouns.^TRUE^FALSE
-Development^True or False: The training dummies were originally low-poly versions of the world's lead developer.^FALSE^TRUE
-Development^True or False: Target Trial was originally a Summer-exclusive event before being turned into a side option in a future update.^TRUE^FALSE
+Dev Facts^True or False: The world's lead developer, MintyMimix, goes by they/them pronouns.^TRUE^FALSE
+Dev Facts^True or False: The training dummies were originally low-poly versions of the world's lead developer.^FALSE^TRUE
+Dev Facts^True or False: Target Trial was originally a Summer-exclusive event before being turned into a side option in a future update.^TRUE^FALSE
 Secrets^Which of the following holiday events allows you to fight an NPC boss?^Anniversary^Winter^Spring^Autumn
 Gameplay^Which of the following items cannot spawn in Infection?^Size Up^Plasma Cannon^High Gravity^Multi-Jump
 Secrets^True or False: You can ring the doorbells on Marina Arena for an achievement regardless of if the Autumn Event is active.^TRUE^FALSE
@@ -44,15 +44,15 @@ Secrets^Which of the following stages were the lobby posters plucked from?^Sunde
 Secrets^True or False: There is a hidden button inside one of the ovens in the spectator bar.^TRUE^FALSE
 Gameplay^True or False: The maximum size limit for any given stage is 25m.^FALSE^TRUE
 Gameplay^True or False: The player movement speed on Bitcrush Bash is same on both Normal and Easy Mode. ^FALSE^TRUE
-Development^Which of the following features was originally a bug?^Rocket Jumping on Death Planes^Dashing^Sticky Mines stopping in place upon contact^Zero Gravity on Ordovidican
-Development^True or False: This trivia module was specifically designed for Bump n' Bash.^FALSE^TRUE
+Dev Facts^Which of the following features was originally a bug?^Rocket Jumping on Death Planes^Dashing^Sticky Mines stopping in place upon contact^Zero Gravity on Ordovidican
+Dev Facts^True or False: This trivia module was specifically designed for Bump n' Bash.^FALSE^TRUE
 History^True or False: Bump n' Bash was originally designed to be PC-only.^FALSE^TRUE
 History^Which of the following platforms did NOT exist upon Bump n' Bash's initial release?^iOS^Quest^Android Mobile^Steam
 Stages^Which stage has the highest damaging hazard that does NOT instantly knock a player out?^Punch Out O'Clock^Brawl Burned^Atom's Mash^Borrowed Space
 Gameplay^How many matches must someone play in order to reach the highest star rating on the scoreboard?^500^200^100^1000
 Gameplay^How many matches must someone play in order to no longer be considered a 'Sprout' by the game?^25^50^100^10
-Development^What was the original name for Grand Slam during its concept phases?^David vs Goliath^Grand Boss Battle^VIP^Protect The Boss
-Development^True or False: The internal names for damage types are all onomatopeia, such as 'kapow' and 'yoink'.^TRUE^FALSE
+Dev Facts^What was the original name for Grand Slam during its concept phases?^David vs Goliath^Grand Boss Battle^VIP^Protect The Boss
+Dev Facts^True or False: The internal names for damage types are all onomatopeia, such as 'kapow' and 'yoink'.^TRUE^FALSE
 References^True or False: The internal name for Starlight Skyway, Highway in the Sky, a reference to Sonic the Hedgehog.^TRUE^FALSE
 References^True or False: The internal name for 64Fort, Blockfort, is a reference to Team Fortress.^TRUE^FALSE
 References^True or False: The song names displayed on Casted Dream's props are all parodies of real-world songs and bands.^TRUE^FALSE
@@ -61,7 +61,7 @@ References^True or False: Many of the SFX cues used in this game are nods to the
 References^True or False: Many of the SFX cues used in this game are nods to the MMORPG Champions Online.^FALSE^TRUE
 Secrets^True or False: There is an achievement and exclusive skin for filling out the survey near the credits screen.^TRUE^FALSE
 Secrets^True or False: There is a hidden, exclusive skin unlocked for earning every non-hidden achievement in the game.^TRUE^FALSE
-Development^What was the original theme of Bump n' Bash conceptualized to be?^A black-and-white rubberhose cartoon^A cyberpunk-style simulation^A loud, bright boxing arena^A whimsical, chaotic circus show
+Dev Facts^What was the original theme of Bump n' Bash conceptualized to be?^A black-and-white rubberhose cartoon^A cyberpunk-style simulation^A loud, bright boxing arena^A whimsical, chaotic circus show
 Gameplay^What is the final weapon of Metamorphosis by default?^Punching Glove^Item Launcher^Hyper Glove^Sticky Mine
 Gameplay^What is the final weapon of Metamorphosis after manual configuration?^Item Launcher^Punching Glove^Hyper Glove^Sticky Mine
 Secrets^True or False: There is a hidden achievement for burning the fish inside the oven in the spectator area.^FALSE^TRUE
@@ -85,8 +85,12 @@ Stages^True or False: One of the cans on Borrowed Space contains hot sauce.^TRUE
 Stages^True or False: One of the cans on Borrowed Space contains vinegar.^FALSE^TRUE
 History^True or False: Prior to specter mode, spectators used to be able to stand in audience bleachers on Sunderdome.^FALSE^TRUE
 Stages^True or False: The Infinitrum was the final stage designed for Bump n' Bash.^TRUE^FALSE
-Development^Which of the following announcer options is NOT by an actual voice actor?^MintyMimix^BombardToo^LixianPrime^Feldarin
+Dev Facts^Which of the following announcer options is NOT by an actual voice actor?^MintyMimix^BombardToo^LixianPrime^Feldarin
 Stages^Which of the following stages does NOT use royalty free music?^Casted Dream^Facing Blues^Atom's Mash^Bitcrush Bash
-References^What game does the Casted Dream's stage song originate from?^The Legend of Heroes: Sora No Kiseki First Chapter^Ys: Foliage Ocean in Celceta^They're Going Down^Ys Seven
+References^What game does the Casted Dream's stage song originate from?^Trails in the Sky: First Chapter^Ys VIII: Lacrimosa of Dana^Gurumin: A Monstrous Adventure^Zwei: The Illvard Insurrection
 Stages^Which of the following stages has a working clock?^Casted Dream^Punch Out O'Clock^Borrowed Space^The Infinitrum
-Stages^What's the object that spawns in place of the spinning disk in Easy Mode?^Dreamcast^Controller^DOS System^Linux Tux Penguin
+Stages^What's the object that spawns in place of the spinning disk in Easy Mode?^A Dreamcast^A DualShock controller^An old MS-DOS machine^Tux, the Linux mascot
+References^What game was the reference for the Bash Master line delivery from the original announcer?^Street Fighter the Movie (1995)^Saturday Night Slam Masters (1993)^NBA Jam (1993)^Unreal Tournament (1999)
+References^What game or series of games inspired the Fiesta toggle?^Halo^Fortnite^Call of Duty^Splatoon
+Gameplay^Which of these is NOT an item in the game?^Power Glove^Hyper Glove^Suction Glove^Mega Glove
+Stages^How many trees are there in Merry Merry Melee?^68^67^69^64
